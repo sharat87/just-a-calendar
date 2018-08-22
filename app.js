@@ -22,7 +22,6 @@ function main() {
 
 function yearInputChanged() {
   fillCalendar(
-    document.getElementById('calendar'),
     document.getElementById('yearInput').value,
   );
 }
@@ -66,7 +65,8 @@ function mkMonthTable() {
   return mkMonthTable.tpl.cloneNode(true);
 }
 
-function fillCalendar(calendarEl, year) {
+function fillCalendar(year) {
+  const calendarEl = document.getElementById('calendar');
   calendarEl.innerHTML = '';
 
   for (const [monthI, monthName] of MONTHS.entries()) {
@@ -157,6 +157,22 @@ function onToggleDark() {
   else
     document.body.classList.remove('dark');
   localStorage.darkMode = JSON.stringify(value);
+}
+
+function onGoToDate() {
+  const dateStr = prompt('Enter date (Any clearly understood format is okay):');
+  if (!dateStr)
+    return;
+  const date = parseDate(dateStr);
+  markedDates.add(isoString(date));
+  const yearInputEl = document.getElementById('yearInput');
+  yearInputEl.value = date.getFullYear();
+  fillCalendar(date.getFullYear());
+}
+
+function parseDate(dateStr) {
+  const d = new Date(dateStr.replace(/-/g, ' '));
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000);
 }
 
 // vim: se sw=2 :
