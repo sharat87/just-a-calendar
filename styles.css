@@ -6,7 +6,6 @@
 body {
   font-family: Lato, sans-serif;
   margin: 0 auto;
-  padding: 1em 1em 3em;
   box-sizing: border-box;
 }
 
@@ -15,6 +14,10 @@ body {
   color: white;
   --highlight1: rgba(255, 255, 255, .1);
   --highlight2: rgba(255, 255, 255, .3);
+}
+
+a {
+  color: #09F;
 }
 
 h1 {
@@ -136,4 +139,10 @@ td.vsep, td.hsep {
   border-width: 0 0 1px 1px;
   border-style: solid;
   border-color: var(--highlight1);
+}
+
+footer {
+  text-align: center;
+  border-top: 1px solid var(--highlight1);
+  margin-top: 3em;
 }
