@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang=en>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Just a calendar</title>
+  <link rel=stylesheet href=styles.css>
+
+  <h1>Just a Calendar</h1>
+
+  <main>
+    <p class=controls>
+      <button type=button onclick='goToYear("-10")'>&minus;10</button>
+      <button type=button onclick='goToYear("-1")'>&minus;1</button>
+      <input type=number id=yearInput>
+      <button type=button onclick='goToYear("+1")'>+1</button>
+      <button type=button onclick='goToYear("+10")'>+10</button>
+    </p>
+    <p class=controls>
+      Click on any date to just mark / unmark it.
+      <button type=button onclick='clearAllMarks()'>Remove all marks</button>
+    </p>
+    <div id=calendar onclick='onCalendarClick(event)'></div>
+  </main>
+
+  <script src=app.js></script>
