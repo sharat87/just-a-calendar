@@ -1,11 +1,20 @@
+:root {
+  --highlight1: rgba(0, 0, 0, .1);
+  --highlight2: rgba(0, 0, 0, .3);
+}
+
 body {
   font-family: Lato, sans-serif;
   margin: 0 auto;
   padding: 1em 1em 3em;
-  border-style: solid;
-  border-width: 0 1px;
-  border-color: rgba(0, 0, 0, .1);
   box-sizing: border-box;
+}
+
+.dark {
+  background-color: #444;
+  color: white;
+  --highlight1: rgba(255, 255, 255, .1);
+  --highlight2: rgba(255, 255, 255, .3);
 }
 
 h1 {
@@ -16,6 +25,12 @@ h1 {
 input, button {
   font: inherit;
   cursor: pointer;
+}
+
+input {
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--highlight2);
 }
 
 #yearInput {
@@ -42,7 +57,7 @@ table {
 }
 
 td, th {
-  border: 1px solid rgba(0, 0, 0, .1);
+  border: 1px solid var(--highlight1);
   padding: 3px 6px;
 }
 
@@ -70,7 +85,7 @@ td.day {
 }
 
 td.weekend {
-  background-color: #EEE;
+  background-color: var(--highlight1);
 }
 
 td.today {
@@ -111,4 +126,14 @@ td.vsep, td.hsep {
 
 .bubble.optional-holiday {
   background-color: #F90;
+}
+
+.dark-mode-toggle {
+  position: fixed;
+  right: 0;
+  top: 0;
+  padding: 0 3px;
+  border-width: 0 0 1px 1px;
+  border-style: solid;
+  border-color: var(--highlight1);
 }

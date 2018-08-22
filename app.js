@@ -12,6 +12,12 @@ function main() {
   yearInputEl.value = 2018;
   yearInputChanged();
   yearInputEl.addEventListener('change', yearInputChanged);
+
+  if (localStorage.darkMode) {
+    const value = JSON.parse(localStorage.darkMode);
+    document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
+    onToggleDark();
+  }
 }
 
 function yearInputChanged() {
@@ -69,7 +75,7 @@ function fillCalendar(calendarEl, year) {
     calendarEl.appendChild(table);
 
     const first = mkDate(year, monthI, 1);
-    const leftTop = mkDate(year, monthI, 1 - first.getDay());
+    const leftTop = mkDate(year, monthI, 1 - (first.getDay() || 7));
 
     let date = leftTop;
     for (let row = 0; row < 6; ++row) {
@@ -142,6 +148,15 @@ function goToYear(yearStr) {
   else
     yearInputEl.value = parseInt(yearStr, 10);
   yearInputChanged();
+}
+
+function onToggleDark() {
+  const value = document.getElementById('darkCheckbox').checked;
+  if (value)
+    document.body.classList.add('dark');
+  else
+    document.body.classList.remove('dark');
+  localStorage.darkMode = JSON.stringify(value);
 }
 
 // vim: se sw=2 :
