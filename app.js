@@ -176,10 +176,31 @@ function parseDate(dateStr) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000);
 }
 
+function formatDate(date, format) {
+  if (format === 'ISO')
+    format = '%Y-%m-%d';
+  return format.replace(/%(.)/g, (match, code) => {
+    switch(code) {
+      case 'a':
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'][date.getDay()];
+      case 'A':
+        return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][date.getDay()];
+      case 'w':
+        return date.getDay();
+      case 'd':
+        return pad(date.getUTCDate(), 2, '0');
+      case 'm':
+        return pad(date.getUTCMonth() + 1, 2, '0');
+      case 'Y':
+        return pad(date.getUTCFullYear(), 4, '0');
+    }
+  });
+}
+
 function highlightSetsPopup() {
   const popup = document.getElementById('highlights');
   const ta = popup.querySelector('textarea');
-  popup.style.display = '';
+  popup.classList.add('show');
   ta.focus();
 }
 
@@ -219,20 +240,91 @@ function setupHighlightsPopup() {
 }
 
 function onCalendarContextMenu(event) {
-  if (!event.target.matches('td.date'))
+  if (!event.target.matches('td.date') || event.shiftKey)
     return;
-  const calendarEl = document.getElementById('calendar');
-  // event.preventDefault();
-  showMenu();
-}
+  event.preventDefault();
 
-function showMenu() {
+  const calendarEl = document.getElementById('calendar');
   const cmenu = document.getElementById('cmenu');
-  cmenu.style.display = '';
+
+  const date = new Date(event.target.dataset.date);
+  const dateStrings = [
+    formatDate(date, '%Y-%m-%d'),
+    formatDate(date, '%m/%d/%Y'),
+  ];
+  cmenu.innerHTML = dateStrings.map((d) => {
+    return '<a href=#>Copy ' + d + '</a>';
+  }).join('') + '<a href=#>Close</a>';
+
+  const tdRect = event.target.getBoundingClientRect();
+  const bodyRect = document.body.getBoundingClientRect();
+
+  cmenu.classList.add('show');
+  cmenu.style.top = (tdRect.y - bodyRect.y + tdRect.height) + 'px';
+  cmenu.style.left = tdRect.x + 'px';
 }
 
 function onCmenuClick(event) {
-  console.log(event);
+  if (event.target.tagName !== 'A')
+    return;
+  event.preventDefault();
+  const text = event.target.innerText;
+  if (text.startsWith('Copy '))
+    copyTextToClipboard(text.replace('Copy ', ''));
+  cmenu.classList.remove('show');
+}
+
+function copyTextToClipboard(text) {
+  // Source: https://stackoverflow.com/a/30810322/151048
+  var ta = document.createElement('textarea');
+
+  //
+  // *** This styling is an extra step which is likely not required. ***
+  //
+  // Why is it here? To ensure:
+  // 1. the element is able to have focus and selection.
+  // 2. if element was to flash render it has minimal visual impact.
+  // 3. less flakyness with selection and copying which **might** occur if
+  //    the textarea element is not visible.
+  //
+  // The likelihood is the element won't even render, not even a flash,
+  // so some of these are just precautions. However in IE the element
+  // is visible whilst the popup box asking the user for permission for
+  // the web page to copy to the clipboard.
+  //
+
+  // Place in top-left corner of screen regardless of scroll position.
+  ta.style.position = 'fixed';
+  ta.style.top = ta.style.left = 0;
+
+  // Ensure it has a small width and height. Setting to 1px / 1em
+  // doesn't work as this gives a negative w/h on some browsers.
+  ta.style.width = ta.style.height = '2em';
+
+  // We don't need padding, reducing the size if it does flash render.
+  ta.style.padding = 0;
+
+  // Clean up any borders.
+  ta.style.border = ta.style.outline = ta.style.boxShadow = 'none';
+
+  // Avoid flash of white box if rendered for any reason.
+  ta.style.background = 'transparent';
+
+  ta.value = text;
+
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+
+  try {
+    var successful = document.execCommand('copy');
+    if (!successful)
+      alert('Sorry, unable to copy.');
+  } catch (err) {
+    alert('Sorry, unable to copy.');
+  }
+
+  document.body.removeChild(ta);
 }
 
 // vim: se sw=2 :

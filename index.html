@@ -20,9 +20,9 @@
     <p class=controls>
       <button type=button onclick='clearAllMarks()'
         title='Click on any date to just mark / unmark it.'>Remove all marks</button>
-      <button type=button onclick='highlightSetsPopup()'>Highlight Sets</button>
+      <button type=button onClick='highlightSetsPopup()'>Highlight Sets</button>
     </p>
-    <div id=calendar onclick='onCalendarClick(event)'
+    <div id=calendar onClick='onCalendarClick(event)'
          oncontextmenu='onCalendarContextMenu(event)'></div>
   </main>
 
@@ -34,11 +34,11 @@
   </footer>
 
   <label class=dark-mode-toggle>
-    <input type=checkbox onchange='onToggleDark()' id=darkCheckbox>
+    <input type=checkbox onChange='onToggleDark()' id=darkCheckbox>
     <span>Dark Mode</span>
   </label>
 
-  <div id=highlights style='display:none'>
+  <div id=highlights class=popup>
     <aside>
       <a href=# class=active>Pink</a>
       <a href=#>Green</a>
@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div id=cmenu onClick='onCmenuClick(event)' style='display:none'>
+  <div id=cmenu onClick='onCmenuClick(event)' class=popup>
     <a href=#>Copy</a>
   </div>
 
