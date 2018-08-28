@@ -17,6 +17,8 @@ function main() {
     document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
     onToggleDark();
   }
+
+  setTimeout(setupHighlightsPopup);
 }
 
 function yearInputChanged() {
@@ -172,6 +174,48 @@ function onGoToDate() {
 function parseDate(dateStr) {
   const d = new Date(dateStr.replace(/-/g, ' '));
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+}
+
+function highlightSetsPopup() {
+  const popup = document.getElementById('highlights');
+  const ta = popup.querySelector('textarea');
+  popup.style.display = '';
+  ta.focus();
+}
+
+function setupHighlightsPopup() {
+  const popup = document.getElementById('highlights');
+  const ta = popup.querySelector('textarea');
+  let activeHl = popup.querySelector('a.active');
+  onActiveChanged(activeHl);
+
+  popup.addEventListener('click', (event) => {
+    if (event.target.tagName !== 'A')
+      return;
+    event.preventDefault();
+
+    if (activeHl)
+      activeHl.classList.remove('active');
+
+    activeHl = event.target;
+    activeHl.classList.add('active');
+
+    onActiveChanged();
+  });
+
+  function onActiveChanged() {
+    const rawData = localStorage['highlights:' + activeHl.innerText];
+    const data = rawData ? JSON.parse(rawData) : {content: ''};
+    ta.value = data.content;
+    ta.focus();
+  }
+
+  ta.addEventListener('input', (event) => {
+    localStorage['highlights:' + activeHl.innerText] = JSON.stringify({
+      content: event.target.value,
+      lastModified: new Date().toISOString(),
+    });
+  });
 }
 
 function onCalendarContextMenu(event) {

@@ -18,8 +18,9 @@
       <button type=button onclick='onGoToDate()'>Go to date</button>
     </p>
     <p class=controls>
-      Click on any date to just mark / unmark it.
-      <button type=button onclick='clearAllMarks()'>Remove all marks</button>
+      <button type=button onclick='clearAllMarks()'
+        title='Click on any date to just mark / unmark it.'>Remove all marks</button>
+      <button type=button onclick='highlightSetsPopup()'>Highlight Sets</button>
     </p>
     <div id=calendar onclick='onCalendarClick(event)'
          oncontextmenu='onCalendarContextMenu(event)'></div>
@@ -36,6 +37,16 @@
     <input type=checkbox onchange='onToggleDark()' id=darkCheckbox>
     <span>Dark Mode</span>
   </label>
+
+  <div id=highlights style='display:none'>
+    <aside>
+      <a href=# class=active>Pink</a>
+      <a href=#>Green</a>
+    </aside>
+    <div>
+      <textarea class=date-list placeholder='Enter one date per line here...' rows=10></textarea>
+    </div>
+  </div>
 
   <div id=cmenu onClick='onCmenuClick(event)' style='display:none'>
     <a href=#>Copy</a>

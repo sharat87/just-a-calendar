@@ -1,17 +1,23 @@
 :root {
+  --bg-color: white;
+  --bg-color-alt: #F7F7F7;
+  --fg-color: black;
   --highlight1: #E5E5E5;
   --highlight2: #BBB;
 }
 
 body {
+  background-color: var(--bg-color);
+  color: var(--fg-color);
   font-family: Lato, sans-serif;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
 .dark {
-  background-color: #444;
-  color: white;
+  --bg-color: #444;
+  --bg-color-alt: #333;
+  --fg-color: white;
   --highlight1: #555;
   --highlight2: #777;
 }
@@ -139,6 +145,42 @@ td.vsep, td.hsep {
   border-width: 0 0 1px 1px;
   border-style: solid;
   border-color: var(--highlight1);
+}
+
+#highlights {
+  position: fixed;
+  top: 40px;
+  left: 40px;
+  background-color: var(--bg-color-alt);
+  border-radius: 6px;
+  border: 1px solid var(--highlight1);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .3);
+  display: flex;
+}
+
+#highlights aside {
+  padding: 1em 0;
+  border-right: 1px solid var(--highlight1);
+}
+
+#highlights a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 6px;
+  min-width: 96px;
+}
+
+#highlights a:hover, #highlights a.active {
+  background: var(--highlight1);
+}
+
+.date-list {
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  border: none;
+  padding: 6px;
 }
 
 footer {
