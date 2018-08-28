@@ -12,7 +12,7 @@
     <p class=controls>
       <button type=button onclick='goToYear("-10")'>&minus;10</button>
       <button type=button onclick='goToYear("-1")'>&minus;1</button>
-      <input type=number id=yearInput>
+      <input type=number id=yearInput onchange='yearInputChanged(event)'>
       <button type=button onclick='goToYear("+1")'>+1</button>
       <button type=button onclick='goToYear("+10")'>+10</button>
       <button type=button onclick='onGoToDate()'>Go to date</button>
@@ -21,13 +21,9 @@
       Click on any date to just mark / unmark it.
       <button type=button onclick='clearAllMarks()'>Remove all marks</button>
     </p>
-    <div id=calendar onclick='onCalendarClick(event)'></div>
+    <div id=calendar onclick='onCalendarClick(event)'
+         oncontextmenu='onCalendarContextMenu(event)'></div>
   </main>
-
-  <label class=dark-mode-toggle>
-    <input type=checkbox onchange='onToggleDark()' id=darkCheckbox>
-    <span>Dark Mode</span>
-  </label>
 
   <footer>
     <p>Made out of pure need and frustration. Also, <span style='color:red'>&hearts;</span>.</p>
@@ -35,5 +31,14 @@
       <a href='https://github.com/sharat87/just-a-calendar'
         target=_blank>GitHub</a>.</p>
   </footer>
+
+  <label class=dark-mode-toggle>
+    <input type=checkbox onchange='onToggleDark()' id=darkCheckbox>
+    <span>Dark Mode</span>
+  </label>
+
+  <div id=cmenu onClick='onCmenuClick(event)' style='display:none'>
+    <a href=#>Copy</a>
+  </div>
 
   <script src=app.js></script>

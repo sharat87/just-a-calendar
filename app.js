@@ -11,7 +11,6 @@ function main() {
 
   yearInputEl.value = 2018;
   yearInputChanged();
-  yearInputEl.addEventListener('change', yearInputChanged);
 
   if (localStorage.darkMode) {
     const value = JSON.parse(localStorage.darkMode);
@@ -173,6 +172,23 @@ function onGoToDate() {
 function parseDate(dateStr) {
   const d = new Date(dateStr.replace(/-/g, ' '));
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+}
+
+function onCalendarContextMenu(event) {
+  if (!event.target.matches('td.date'))
+    return;
+  const calendarEl = document.getElementById('calendar');
+  // event.preventDefault();
+  showMenu();
+}
+
+function showMenu() {
+  const cmenu = document.getElementById('cmenu');
+  cmenu.style.display = '';
+}
+
+function onCmenuClick(event) {
+  console.log(event);
 }
 
 // vim: se sw=2 :

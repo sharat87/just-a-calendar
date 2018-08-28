@@ -1,6 +1,6 @@
 :root {
-  --highlight1: rgba(0, 0, 0, .1);
-  --highlight2: rgba(0, 0, 0, .3);
+  --highlight1: #E5E5E5;
+  --highlight2: #BBB;
 }
 
 body {
@@ -12,8 +12,8 @@ body {
 .dark {
   background-color: #444;
   color: white;
-  --highlight1: rgba(255, 255, 255, .1);
-  --highlight2: rgba(255, 255, 255, .3);
+  --highlight1: #555;
+  --highlight2: #777;
 }
 
 a {
