@@ -2,12 +2,15 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 
 const markedDates = new Set;
+const highlightedDates = new Map;
 
 main();
 
 function main() {
   const calendarEl = document.getElementById('calendar');
   const yearInputEl = document.getElementById('yearInput');
+
+  loadHighlightDates();
 
   yearInputEl.value = 2018;
   yearInputChanged();
@@ -19,12 +22,14 @@ function main() {
   }
 
   setTimeout(setupHighlightsPopup);
+
+  if (localStorage.labs) {
+    document.getElementById('highlightsBtn').style = '';
+  }
 }
 
 function yearInputChanged() {
-  fillCalendar(
-    document.getElementById('yearInput').value,
-  );
+  fillCalendar(document.getElementById('yearInput').value);
 }
 
 function onCalendarClick(event) {
@@ -52,13 +57,13 @@ function mkMonthTable() {
       <thead>
         <tr><th colspan=7></th></tr>
         <tr>
-          <th>Su</th>
-          <th>Mo</th>
-          <th>Tu</th>
-          <th>We</th>
-          <th>Th</th>
-          <th>Fr</th>
-          <th>Sa</th>
+          <th><code>Su</code></th>
+          <th><code>Mo</code></th>
+          <th><code>Tu</code></th>
+          <th><code>We</code></th>
+          <th><code>Th</code></th>
+          <th><code>Fr</code></th>
+          <th><code>Sa</code></th>
         </tr>
       </thead>
       <tbody></tbody>`;
@@ -93,6 +98,12 @@ function fillCalendar(year) {
         td.dataset.date = isoString(date);
         if (markedDates.has(td.dataset.date))
           td.classList.add('mark');
+
+        const highlights = highlightedDates.get(td.dataset.date);
+        if (highlights)
+          for (const hl of highlights)
+            td.classList.add('hl-' + hl.toLowerCase());
+
         tr.appendChild(td);
         date = nextDate(date);
       }
@@ -102,18 +113,6 @@ function fillCalendar(year) {
   const now = new Date;
   const todayIso = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
   calendarEl.querySelectorAll(`td[data-date="${todayIso}"]`).forEach(td => td.classList.add('today'));
-
-  const highlightedDates = new Map();
-  /*{
-    const hlTable = document.getElementById('highlighted-dates').nextElementSibling;
-    for (const row of hlTable.querySelectorAll('tbody tr')) {
-      const [dateStr, detail, bubblesStr] = Array.prototype.map.call(row.children, (e) => e.innerText);
-      const date = new Date(new Date(new Date(dateStr).setHours(0)).setMinutes(0)),
-          bubbles = bubblesStr.trim().split(/\s+/);
-      highlightedDates.set(date.toISOString().substr(0, 10), {detail, bubbles});
-    }
-  }*/
-
 }
 
 function clearAllMarks() {
@@ -237,6 +236,22 @@ function setupHighlightsPopup() {
       lastModified: new Date().toISOString(),
     });
   });
+}
+
+function loadHighlightDates() {
+  for (const key of Object.keys(localStorage)) {
+    if (!key.startsWith('highlights:'))
+      continue;
+    const name = key.slice('highlights:'.length);
+    const content = JSON.parse(localStorage[key]).content;
+    for (const line of content.split('\n')) {
+      const date = isoString(parseDate(line));
+      if (!highlightedDates.has(date))
+        highlightedDates.set(date, new Set);
+      highlightedDates.get(date).add(name);
+    }
+  }
+  console.log(highlightedDates);
 }
 
 function onCalendarContextMenu(event) {

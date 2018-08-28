@@ -20,7 +20,8 @@
     <p class=controls>
       <button type=button onclick='clearAllMarks()'
         title='Click on any date to just mark / unmark it.'>Remove all marks</button>
-      <button type=button onClick='highlightSetsPopup()'>Highlight Sets</button>
+      <button type=button onClick='highlightSetsPopup()' id=highlightsBtn
+        style=display:none>Highlight Sets (WIP)</button>
     </p>
     <div id=calendar onClick='onCalendarClick(event)'
          oncontextmenu='onCalendarContextMenu(event)'></div>
