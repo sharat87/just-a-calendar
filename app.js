@@ -72,7 +72,9 @@ document.body.addEventListener('keydown', (event) => {
   if (event.target.matches('input, textarea'))
     return;
   switch(event.key) {
-    case 'o': onGoToDate(); break;
+    case 'g': onGoToDate(); break;
+    case 'n': goToYear('+1'); break;
+    case 'p': goToYear('-1'); break;
   }
 });
 
