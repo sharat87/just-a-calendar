@@ -150,9 +150,7 @@ td.vsep, td.hsep {
   right: 0;
   top: 0;
   padding: 0 3px;
-  border-width: 0 0 1px 1px;
-  border-style: solid;
-  border-color: var(--highlight1);
+  background-color: var(--highlight1);
 }
 
 .popup {

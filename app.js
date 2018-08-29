@@ -75,6 +75,10 @@ document.body.addEventListener('keydown', (event) => {
     case 'g': onGoToDate(); break;
     case 'n': goToYear('+1'); break;
     case 'p': goToYear('-1'); break;
+    case 'Escape':
+      document.getElementById('highlights').classList.remove('show');
+      document.getElementById('cmenu').classList.remove('show');
+      break;
   }
 });
 
@@ -318,7 +322,7 @@ function onCalendarContextMenu(event) {
   ];
   cmenu.innerHTML = dateStrings.map((d) => {
     return '<a href=#>Copy ' + d + '</a>';
-  }).join('') + '<a href=#>Close</a>';
+  }).join('') + '<a href=#>Close [ESC]</a>';
 
   const tdRect = event.target.getBoundingClientRect();
   const bodyRect = document.body.getBoundingClientRect();
