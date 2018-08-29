@@ -18,7 +18,21 @@ const Bus = {
   },
 };
 
-setTimeout(() => {
+{
+  // Today highlighter.
+  Bus.on('fill-calendar', ({year, el}) => {
+    const now = new Date;
+    if (now.getUTCFullYear() !== year)
+      return;
+    const todayIso = isoString(now);
+    console.log(todayIso);
+    const tds = el.querySelectorAll('td[data-date="' + todayIso + '"]');
+    for (const td of tds)
+      td.classList.add('today');
+  });
+}
+
+{
   // Date marking.
   const calendarEl = document.getElementById('calendar');
   const markedDates = new Set;
@@ -53,7 +67,7 @@ setTimeout(() => {
         td.classList.add('mark');
     }
   });
-});
+}
 
 main();
 
@@ -80,7 +94,7 @@ function main() {
 }
 
 function yearInputChanged() {
-  fillCalendar(document.getElementById('yearInput').value);
+  fillCalendar(parseInt(document.getElementById('yearInput').value, 10));
 }
 
 function mkMonthTable() {
@@ -136,9 +150,6 @@ function fillCalendar(year) {
     }
   }
 
-  const now = new Date;
-  const todayIso = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
-  calendarEl.querySelectorAll(`td[data-date="${todayIso}"]`).forEach(td => td.classList.add('today'));
   Bus.emit('fill-calendar', {year, el: calendarEl});
 }
 
