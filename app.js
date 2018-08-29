@@ -5,15 +5,14 @@ const highlightedDates = new Map;
 
 const Bus = {
   listeners: new Map,
-  on: (event, fn) => {
-    console.log(this);
-    if (!Bus.listeners.has(event))
-      Bus.listeners.set(event, []);
-    Bus.listeners.get(event).push(fn);
+  on(event, fn) {
+    if (!this.listeners.has(event))
+      this.listeners.set(event, []);
+    this.listeners.get(event).push(fn);
   },
-  emit: (event, data) => {
-    if (Bus.listeners.has(event))
-      for (const fn of Bus.listeners.get(event))
+  emit(event, data) {
+    if (this.listeners.has(event))
+      for (const fn of this.listeners.get(event))
         fn(data);
   },
 };
@@ -68,6 +67,14 @@ const Bus = {
     }
   });
 }
+
+document.body.addEventListener('keydown', (event) => {
+  if (event.target.matches('input, textarea'))
+    return;
+  switch(event.key) {
+    case 'o': onGoToDate(); break;
+  }
+});
 
 main();
 
