@@ -1,8 +1,59 @@
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 
-const markedDates = new Set;
 const highlightedDates = new Map;
+
+const Bus = {
+  listeners: new Map,
+  on: (event, fn) => {
+    console.log(this);
+    if (!Bus.listeners.has(event))
+      Bus.listeners.set(event, []);
+    Bus.listeners.get(event).push(fn);
+  },
+  emit: (event, data) => {
+    if (Bus.listeners.has(event))
+      for (const fn of Bus.listeners.get(event))
+        fn(data);
+  },
+};
+
+setTimeout(() => {
+  // Date marking.
+  const calendarEl = document.getElementById('calendar');
+  const markedDates = new Set;
+
+  calendarEl.addEventListener('click', (event) => {
+    const calendarEl = document.getElementById('calendar');
+    if (event.target.matches('td.date')) {
+      const tds = calendarEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
+      const date = event.target.dataset.date;
+      if (markedDates.has(date)) {
+        for (const td of tds)
+          td.classList.remove('mark');
+        markedDates.delete(date);
+      } else {
+        for (const td of tds)
+          td.classList.add('mark');
+        markedDates.add(date);
+      }
+    }
+  });
+
+  document.getElementById('clearMarksBtn').addEventListener('click', (event) => {
+    for (const td of calendarEl.querySelectorAll('td.mark'))
+      td.classList.remove('mark');
+    markedDates.clear();
+  });
+
+  Bus.on('fill-calendar', ({year, el}) => {
+    for (const date of markedDates) {
+      const tds = calendarEl.querySelectorAll('td[data-date="' + date + '"]');
+      for (const td of tds)
+        td.classList.add('mark');
+    }
+  });
+});
 
 main();
 
@@ -30,23 +81,6 @@ function main() {
 
 function yearInputChanged() {
   fillCalendar(document.getElementById('yearInput').value);
-}
-
-function onCalendarClick(event) {
-  const calendarEl = document.getElementById('calendar');
-  if (event.target.matches('td.date')) {
-    const tds = calendarEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
-    const date = event.target.dataset.date;
-    if (markedDates.has(date)) {
-      for (const td of tds)
-        td.classList.remove('mark');
-      markedDates.delete(date);
-    } else {
-      for (const td of tds)
-        td.classList.add('mark');
-      markedDates.add(date);
-    }
-  }
 }
 
 function mkMonthTable() {
@@ -96,14 +130,6 @@ function fillCalendar(year) {
         if (date.getDay() === 0 || date.getDay() === 6)
           td.classList.add('weekend');
         td.dataset.date = isoString(date);
-        if (markedDates.has(td.dataset.date))
-          td.classList.add('mark');
-
-        const highlights = highlightedDates.get(td.dataset.date);
-        if (highlights)
-          for (const hl of highlights)
-            td.classList.add('hl-' + hl.toLowerCase());
-
         tr.appendChild(td);
         date = nextDate(date);
       }
@@ -113,13 +139,7 @@ function fillCalendar(year) {
   const now = new Date;
   const todayIso = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
   calendarEl.querySelectorAll(`td[data-date="${todayIso}"]`).forEach(td => td.classList.add('today'));
-}
-
-function clearAllMarks() {
-  const calendarEl = document.getElementById('calendar');
-  for (const td of calendarEl.querySelectorAll('td.mark'))
-    td.classList.remove('mark');
-  markedDates.clear();
+  Bus.emit('fill-calendar', {year, el: calendarEl});
 }
 
 function mkDate(year, monthIndex, day) {
@@ -164,7 +184,7 @@ function onGoToDate() {
   if (!dateStr)
     return;
   const date = parseDate(dateStr);
-  markedDates.add(isoString(date));
+  // markedDates.add(isoString(date));
   const yearInputEl = document.getElementById('yearInput');
   yearInputEl.value = date.getFullYear();
   fillCalendar(date.getFullYear());
@@ -235,6 +255,15 @@ function setupHighlightsPopup() {
       content: event.target.value,
       lastModified: new Date().toISOString(),
     });
+  });
+
+  Bus.on('fill-calendar', ({year, el}) => {
+    for (const [date, highlights] of highlightedDates) {
+      const tds = el.querySelectorAll('td[data-date="' + date + '"]');
+      for (const hl of highlights)
+        for (const td of tds)
+          td.classList.add('hl-' + hl.toLowerCase());
+    }
   });
 }
 
