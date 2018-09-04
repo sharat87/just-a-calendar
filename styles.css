@@ -11,7 +11,7 @@
 body {
   background-color: var(--bg-color);
   color: var(--fg-color);
-  font-family: 'PT Sans', sans-serif;
+  font-family: Lato, sans-serif;
   margin: 0 auto;
   box-sizing: border-box;
   max-width: 1100px;
