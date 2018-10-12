@@ -138,7 +138,7 @@ function fillCalendar(year) {
 
   for (const [monthI, monthName] of MONTHS.entries()) {
     const table = mkMonthTable();
-    table.querySelector('th:empty').innerText = monthName;
+    table.querySelector('th:empty').innerText = `${monthName} ${year}`;
     calendarEl.appendChild(table);
 
     const first = mkDate(year, monthI, 1);
