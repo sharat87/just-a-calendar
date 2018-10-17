@@ -224,6 +224,21 @@ td.vsep, td.hsep {
   color: var(--fg-color-hover);
 }
 
+#help-dialog {
+  display: none;
+  position: fixed;
+  top: 3em;
+  left: 3em;
+  background-color: var(--bg-color-alt);
+  box-shadow: 6px 6px 36px var(--highlight1);
+  padding: 1em;
+  border-radius: 6px;
+}
+
+#help-dialog.open {
+  display: block;
+}
+
 footer {
   text-align: center;
   border-top: 1px solid var(--highlight1);

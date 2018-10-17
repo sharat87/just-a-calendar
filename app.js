@@ -24,7 +24,6 @@ const Bus = {
     if (now.getUTCFullYear() !== year)
       return;
     const todayIso = isoString(now);
-    console.log(todayIso);
     const tds = el.querySelectorAll('td[data-date="' + todayIso + '"]');
     for (const td of tds)
       td.classList.add('today');
@@ -72,9 +71,12 @@ document.body.addEventListener('keydown', (event) => {
   if (event.target.matches('input, textarea'))
     return;
   switch(event.key) {
+    case '?': toggleHelp(); break;
     case 'g': onGoToDate(); break;
     case 'n': goToYear('+1'); break;
     case 'p': goToYear('-1'); break;
+    case 'N': goToYear('+10'); break;
+    case 'P': goToYear('-10'); break;
     case 'Escape':
       document.getElementById('highlights').classList.remove('show');
       document.getElementById('cmenu').classList.remove('show');
@@ -304,7 +306,6 @@ function loadHighlightDates() {
       highlightedDates.get(date).add(name);
     }
   }
-  console.log(highlightedDates);
 }
 
 function onCalendarContextMenu(event) {
@@ -393,6 +394,11 @@ function copyTextToClipboard(text) {
   }
 
   document.body.removeChild(ta);
+}
+
+function toggleHelp() {
+  const helpEl = document.getElementById('help-dialog');
+  helpEl.classList.toggle('open');
 }
 
 // vim: se sw=2 :
