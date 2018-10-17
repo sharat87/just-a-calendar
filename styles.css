@@ -4,6 +4,7 @@
   --bg-color-hover: #09F;
   --fg-color: black;
   --fg-color-hover: white;
+  --highlight0: #F8F8F8;
   --highlight1: #E5E5E5;
   --highlight2: #BBB;
 }
@@ -26,6 +27,7 @@ code {
   --bg-color: #444;
   --bg-color-alt: #333;
   --fg-color: white;
+  --highlight0: #494949;
   --highlight1: #555;
   --highlight2: #777;
 }
@@ -145,12 +147,11 @@ td.vsep, td.hsep {
   background-color: #F90;
 }
 
-.dark-mode-toggle {
-  position: fixed;
-  right: 0;
-  top: 0;
-  padding: 0 3px;
-  background-color: var(--highlight1);
+.settings {
+  text-align: center;
+  margin: 1em;
+  padding: 3px;
+  background-color: var(--highlight0);
 }
 
 .popup {

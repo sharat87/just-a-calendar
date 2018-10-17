@@ -26,17 +26,19 @@
     <div id=calendar oncontextmenu='onCalendarContextMenu(event)'></div>
   </main>
 
+  <section class=settings>
+    <label>
+      <input type=checkbox onChange='onToggleDark()' id=darkCheckbox>
+      <span>Dark Mode</span>
+    </label>
+  </section>
+
   <footer>
     <p>Made out of pure need and frustration. Also, <span style='color:red'>&hearts;</span>.</p>
     <p>&copy; 2018 &mdash; Shrikant Sharat Kandula. Source code on
       <a href='https://github.com/sharat87/just-a-calendar'
         target=_blank>GitHub</a>.</p>
   </footer>
-
-  <label class=dark-mode-toggle>
-    <input type=checkbox onChange='onToggleDark()' id=darkCheckbox>
-    <span>Dark Mode</span>
-  </label>
 
   <div id=highlights class=popup>
     <aside>
