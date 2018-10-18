@@ -37,34 +37,48 @@ const Bus = {
 
   calendarEl.addEventListener('click', (event) => {
     const calendarEl = document.getElementById('calendar');
-    if (event.target.matches('td.date')) {
-      const tds = calendarEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
-      const date = event.target.dataset.date;
-      if (markedDates.has(date)) {
-        for (const td of tds)
-          td.classList.remove('mark');
-        markedDates.delete(date);
-      } else {
-        for (const td of tds)
-          td.classList.add('mark');
-        markedDates.add(date);
-      }
+    if (!event.target.matches('td.date'))
+      return;
+    const tds = calendarEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
+    const date = event.target.dataset.date;
+    if (markedDates.has(date)) {
+      for (const td of tds)
+        td.classList.remove('mark');
+      markedDates.delete(date);
+    } else {
+      for (const td of tds)
+        td.classList.add('mark');
+      markedDates.add(date);
     }
-  });
-
-  document.getElementById('clearMarksBtn').addEventListener('click', (event) => {
-    for (const td of calendarEl.querySelectorAll('td.mark'))
-      td.classList.remove('mark');
-    markedDates.clear();
+    saveMarks();
   });
 
   Bus.on('fill-calendar', ({year, el}) => {
+    loadMarks();
     for (const date of markedDates) {
       const tds = calendarEl.querySelectorAll('td[data-date="' + date + '"]');
       for (const td of tds)
         td.classList.add('mark');
     }
   });
+
+  Bus.on('clear-marks', () => {
+    for (const td of calendarEl.querySelectorAll('td.mark'))
+      td.classList.remove('mark');
+    markedDates.clear();
+    saveMarks();
+  });
+
+  function saveMarks() {
+    localStorage.marks = JSON.stringify(Array.from(markedDates));
+  }
+
+  function loadMarks() {
+    markedDates.clear();
+    if (localStorage.marks)
+      for (const date of JSON.parse(localStorage.marks))
+        markedDates.add(date);
+  }
 }
 
 document.body.addEventListener('keydown', (event) => {
@@ -77,6 +91,7 @@ document.body.addEventListener('keydown', (event) => {
     case 'p': goToYear('-1'); break;
     case 'N': goToYear('+10'); break;
     case 'P': goToYear('-10'); break;
+    case 'C': clearAllMarks(); break;
     case 'Escape':
       document.getElementById('highlights').classList.remove('show');
       document.getElementById('cmenu').classList.remove('show');
@@ -394,6 +409,10 @@ function copyTextToClipboard(text) {
   }
 
   document.body.removeChild(ta);
+}
+
+function clearAllMarks() {
+  Bus.emit('clear-marks');
 }
 
 function toggleHelp() {
