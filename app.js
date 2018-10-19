@@ -106,8 +106,10 @@ function main() {
   const yearInputEl = document.getElementById('yearInput');
 
   loadHighlightDates();
+  setupHighlightsPopup();
 
   yearInputEl.value = 2018;
+
   yearInputChanged();
 
   if (localStorage.darkMode) {
@@ -115,8 +117,6 @@ function main() {
     document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
     onToggleDark();
   }
-
-  setTimeout(setupHighlightsPopup);
 
   if (localStorage.labs) {
     document.getElementById('highlightsBtn').style = '';

@@ -154,6 +154,10 @@ td.vsep, td.hsep {
   background-color: var(--highlight0);
 }
 
+.settings > * + * {
+  margin-left: 1em;
+}
+
 .popup {
   background-color: var(--bg-color-alt);
   display: none;
@@ -196,6 +200,10 @@ td.vsep, td.hsep {
   font: inherit;
   border: none;
   padding: 6px;
+}
+
+.date-list:focus {
+  outline: none;
 }
 
 .hl-pink {
