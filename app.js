@@ -114,6 +114,11 @@ const Bus = {
     }
   });
 
+  Bus.on('highlight-sets-popup', () => {
+    popup.classList.add('show');
+    ta.focus();
+  });
+
   function loadHighlights() {
     highlightedDates.clear();
     for (const key of Object.keys(localStorage)) {
@@ -263,12 +268,11 @@ function nextDate(date) {
   return mkDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1);
 }
 
-function goToYear(yearStr) {
-  const yearInputEl = document.getElementById('yearInput');
-  if (yearStr[0] === '-' || yearStr[0] === '+')
-    setYear(parseInt(yearInputEl.value, 10) + parseInt(yearStr, 10));
+function goToYear(year) {
+  if (typeof(year) === 'string' && (year[0] === '-' || year[0] === '+'))
+    setYear(parseInt(document.getElementById('yearInput').value, 10) + parseInt(year, 10));
   else
-    setYear(yearStr);
+    setYear(year);
 }
 
 function onToggleDark() {
@@ -285,7 +289,6 @@ function onGoToDate() {
   if (!dateStr)
     return;
   const date = parseDate(dateStr);
-  // markedDates.add(isoString(date));
   const yearInputEl = document.getElementById('yearInput');
   yearInputEl.value = date.getFullYear();
   fillCalendar(date.getFullYear());
@@ -318,10 +321,7 @@ function formatDate(date, format) {
 }
 
 function highlightSetsPopup() {
-  const popup = document.getElementById('highlights');
-  const ta = popup.querySelector('textarea');
-  popup.classList.add('show');
-  ta.focus();
+  Bus.emit('highlight-sets-popup');
 }
 
 function onCalendarContextMenu(event) {
