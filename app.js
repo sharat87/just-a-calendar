@@ -142,8 +142,8 @@ const Bus = {
     if (!el)
       return;
 
-    if (el)
-      el.classList.remove('active');
+    if (activeHl)
+      activeHl.classList.remove('active');
     (activeHl = el).classList.add('active');
 
     const rawData = localStorage['highlights:' + el.innerText];
