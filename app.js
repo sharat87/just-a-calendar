@@ -177,19 +177,13 @@ function main() {
   const calendarEl = document.getElementById('calendar');
   const yearInputEl = document.getElementById('yearInput');
 
-  setYear(2018);
+  goToYear(new Date().getFullYear());
 
   if (localStorage.darkMode) {
     const value = JSON.parse(localStorage.darkMode);
     document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
     onToggleDark();
   }
-}
-
-function setYear(year) {
-  const yearInputEl = document.getElementById('yearInput');
-  yearInputEl.value = year = parseInt(year, 10);
-  fillCalendar(year);
 }
 
 function mkMonthTable() {
@@ -268,10 +262,13 @@ function nextDate(date) {
 }
 
 function goToYear(year) {
+  const yearInputEl = document.getElementById('yearInput');
   if (typeof(year) === 'string' && (year[0] === '-' || year[0] === '+'))
-    setYear(parseInt(document.getElementById('yearInput').value, 10) + parseInt(year, 10));
+    year = parseInt(yearInputEl.value, 10) + parseInt(year, 10);
   else
-    setYear(year);
+    year = parseInt(year, 10);
+  yearInputEl.value = year;
+  fillCalendar(year);
 }
 
 function onToggleDark() {
@@ -288,9 +285,8 @@ function onGoToDate() {
   if (!dateStr)
     return;
   const date = parseDate(dateStr);
-  const yearInputEl = document.getElementById('yearInput');
-  yearInputEl.value = date.getFullYear();
-  fillCalendar(date.getFullYear());
+  if (date)
+    goToYear(date.getFullYear());
 }
 
 function parseDate(dateStr) {
