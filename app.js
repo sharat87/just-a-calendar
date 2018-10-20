@@ -127,7 +127,10 @@ const Bus = {
       const name = key.slice('highlights:'.length);
       const content = JSON.parse(localStorage[key]).content;
       for (const line of content.split('\n')) {
-        const date = isoString(parseDate(line));
+        let date = parseDate(line);
+        if (!date)
+          continue;
+        date = isoString(date);
         if (!highlightedDates.has(date))
           highlightedDates.set(date, new Set);
         highlightedDates.get(date).add(name);
@@ -261,7 +264,7 @@ function pad(str) {
 }
 
 function isoString(date) {
-  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+  return date ? `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}` : '';
 }
 
 function nextDate(date) {
@@ -295,8 +298,13 @@ function onGoToDate() {
 }
 
 function parseDate(dateStr) {
-  const d = new Date(dateStr.replace(/-/g, ' '));
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  dateStr = dateStr.toLowerCase();
+  let d;
+  if (dateStr === 'today' | dateStr === 'now')
+    d = new Date;
+  else
+    d = new Date(dateStr.replace(/-/g, ' '));
+  return isNaN(d.getTime()) ? null : new Date(d.getTime() - d.getTimezoneOffset() * 60000);
 }
 
 function formatDate(date, format) {
