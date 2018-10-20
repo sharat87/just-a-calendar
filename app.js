@@ -184,10 +184,6 @@ function main() {
     document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
     onToggleDark();
   }
-
-  if (localStorage.labs) {
-    document.getElementById('highlightsBtn').style = '';
-  }
 }
 
 function setYear(year) {
