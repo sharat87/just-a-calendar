@@ -1,5 +1,5 @@
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+  'September', 'October', 'November', 'December'];
 
 const Bus = {
   listeners: new Map,
@@ -369,7 +369,7 @@ function onCmenuClick(event) {
 
 function copyTextToClipboard(text) {
   // Source: https://stackoverflow.com/a/30810322/151048
-  var ta = document.createElement('textarea');
+  const ta = document.createElement('textarea');
 
   //
   // *** This styling is an extra step which is likely not required. ***
@@ -410,14 +410,14 @@ function copyTextToClipboard(text) {
   ta.select();
 
   try {
-    var successful = document.execCommand('copy');
-    if (!successful)
+    if (!document.execCommand('copy'))
       alert('Sorry, unable to copy.');
   } catch (err) {
+    console.error('Error copying.', err);
     alert('Sorry, unable to copy.');
   }
 
-  document.body.removeChild(ta);
+  ta.remove();
 }
 
 function clearAllMarks() {
