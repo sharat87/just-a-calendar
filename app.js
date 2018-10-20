@@ -1,8 +1,6 @@
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 
-const highlightedDates = new Map;
-
 const Bus = {
   listeners: new Map,
   on(event, fn) {
@@ -81,8 +79,74 @@ const Bus = {
   }
 }
 
+{
+  // Highlight sets.
+  const calendarEl = document.getElementById('calendar'),
+      popup = document.getElementById('highlights'),
+      ta = popup.querySelector('textarea'),
+      highlightedDates = new Map;
+  let activeHl = null;
+
+  loadHighlights();
+  setActiveTab(popup.querySelector('a.active'));
+
+  popup.addEventListener('click', (event) => {
+    if (event.target.tagName !== 'A')
+      return;
+    event.preventDefault();
+
+    setActiveTab(event.target);
+  });
+
+  ta.addEventListener('input', (event) => {
+    localStorage['highlights:' + activeHl.innerText] = JSON.stringify({
+      content: event.target.value,
+      lastModified: new Date().toISOString(),
+    });
+  });
+
+  Bus.on('fill-calendar', ({year, el}) => {
+    for (const [date, highlights] of highlightedDates) {
+      const tds = el.querySelectorAll('td[data-date="' + date + '"]');
+      for (const hl of highlights)
+        for (const td of tds)
+          td.classList.add('hl-' + hl.toLowerCase());
+    }
+  });
+
+  function loadHighlights() {
+    highlightedDates.clear();
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith('highlights:'))
+        continue;
+      const name = key.slice('highlights:'.length);
+      const content = JSON.parse(localStorage[key]).content;
+      for (const line of content.split('\n')) {
+        const date = isoString(parseDate(line));
+        if (!highlightedDates.has(date))
+          highlightedDates.set(date, new Set);
+        highlightedDates.get(date).add(name);
+      }
+    }
+  }
+
+  function setActiveTab(el) {
+    if (!el)
+      return;
+
+    if (el)
+      el.classList.remove('active');
+    (activeHl = el).classList.add('active');
+
+    const rawData = localStorage['highlights:' + el.innerText];
+    const data = rawData ? JSON.parse(rawData) : {content: ''};
+    ta.value = data.content;
+    ta.focus();
+  }
+}
+
 document.body.addEventListener('keydown', (event) => {
-  if (event.target.matches('input, textarea'))
+  if (event.target.matches('input, textarea') && event.key !== 'Escape')
     return;
   switch(event.key) {
     case '?': toggleHelp(); break;
@@ -105,11 +169,7 @@ function main() {
   const calendarEl = document.getElementById('calendar');
   const yearInputEl = document.getElementById('yearInput');
 
-  loadHighlightDates();
-  setupHighlightsPopup();
-
   yearInputEl.value = 2018;
-
   yearInputChanged();
 
   if (localStorage.darkMode) {
@@ -262,65 +322,6 @@ function highlightSetsPopup() {
   const ta = popup.querySelector('textarea');
   popup.classList.add('show');
   ta.focus();
-}
-
-function setupHighlightsPopup() {
-  const popup = document.getElementById('highlights');
-  const ta = popup.querySelector('textarea');
-  let activeHl = popup.querySelector('a.active');
-  onActiveChanged(activeHl);
-
-  popup.addEventListener('click', (event) => {
-    if (event.target.tagName !== 'A')
-      return;
-    event.preventDefault();
-
-    if (activeHl)
-      activeHl.classList.remove('active');
-
-    activeHl = event.target;
-    activeHl.classList.add('active');
-
-    onActiveChanged();
-  });
-
-  function onActiveChanged() {
-    const rawData = localStorage['highlights:' + activeHl.innerText];
-    const data = rawData ? JSON.parse(rawData) : {content: ''};
-    ta.value = data.content;
-    ta.focus();
-  }
-
-  ta.addEventListener('input', (event) => {
-    localStorage['highlights:' + activeHl.innerText] = JSON.stringify({
-      content: event.target.value,
-      lastModified: new Date().toISOString(),
-    });
-  });
-
-  Bus.on('fill-calendar', ({year, el}) => {
-    for (const [date, highlights] of highlightedDates) {
-      const tds = el.querySelectorAll('td[data-date="' + date + '"]');
-      for (const hl of highlights)
-        for (const td of tds)
-          td.classList.add('hl-' + hl.toLowerCase());
-    }
-  });
-}
-
-function loadHighlightDates() {
-  for (const key of Object.keys(localStorage)) {
-    if (!key.startsWith('highlights:'))
-      continue;
-    const name = key.slice('highlights:'.length);
-    const content = JSON.parse(localStorage[key]).content;
-    for (const line of content.split('\n')) {
-      const date = isoString(parseDate(line));
-      if (!highlightedDates.has(date))
-        highlightedDates.set(date, new Set);
-      highlightedDates.get(date).add(name);
-    }
-  }
 }
 
 function onCalendarContextMenu(event) {

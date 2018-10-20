@@ -12,7 +12,7 @@
 body {
   background-color: var(--bg-color);
   color: var(--fg-color);
-  font-family: Lato, sans-serif;
+  font-family: Calibri, sans-serif;
   margin: 0 auto;
   box-sizing: border-box;
   max-width: 1100px;
@@ -166,7 +166,6 @@ td.vsep, td.hsep {
   text-align: center;
   margin: 1em;
   padding: 3px;
-  background-color: var(--highlight0);
 }
 
 .settings > * + * {
