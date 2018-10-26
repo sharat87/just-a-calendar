@@ -12,7 +12,7 @@
 body {
   background-color: var(--bg-color);
   color: var(--fg-color);
-  font-family: Calibri, sans-serif;
+  font-family: 'PT Sans', serif;
   margin: 0 auto;
   box-sizing: border-box;
   max-width: 1100px;
@@ -105,17 +105,13 @@ td.month {
   border-color: cornflowerblue;
 }
 
-td.date, td.day {
+td.date {
   text-align: right;
 }
 
 td.date {
   cursor: pointer;
   position: relative;
-}
-
-td.day {
-  font-family: monospace;
 }
 
 td.weekend {
