@@ -54,7 +54,7 @@ input {
 }
 
 button {
-	color: var(--fg-color);
+	color: inherit;
 	background-image: linear-gradient(var(--bg-color), var(--bg-color-alt));
 	border: 1px solid rgba(0, 0, 0, .2);
 	padding: 3px 12px;
