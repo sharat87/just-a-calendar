@@ -54,17 +54,20 @@ input {
 }
 
 button {
-	color: #017;
-	background-color: #CEF;
-	background-image: linear-gradient(transparent, rgba(0, 0, 200, .1));
-	border: none;
+	color: var(--fg-color);
+	background-image: linear-gradient(var(--bg-color), var(--bg-color-alt));
+	border: 1px solid rgba(0, 0, 0, .2);
 	padding: 3px 12px;
-	border-radius: 3px;
+	border-radius: 2px;
 	min-width: 2em;
 }
 
 button:hover {
-	background-image: linear-gradient(transparent, rgba(0, 0, 200, .2));
+	border-color: rgba(0, 0, 0, .5);
+}
+
+button:active {
+	background-image: linear-gradient(var(--bg-color-alt), var(--bg-color));
 }
 
 #yearInput {
