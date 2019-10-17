@@ -75,7 +75,7 @@ const Bus = {
 		markedDates.clear();
 		if (localStorage.marks) {
 			for (const date of JSON.parse(localStorage.marks))
-				markedDates.set(date, 'orange');
+				markedDates.set(date, 'coral');
 			localStorage.removeItem('marks');
 			saveMarks();
 

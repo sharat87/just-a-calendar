@@ -114,20 +114,20 @@ td.date {
 	position: relative;
 }
 
-td.weekend {
+.weekend {
 	background-color: var(--highlight1);
 }
 
-td.today {
+.today {
 	background: cornflowerblue;
 	color: white;
 }
 
-td.diff-month {
+.diff-month {
 	opacity: .4;
 }
 
-td.mark {
+.mark {
 	color: white;
 }
 
