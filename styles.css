@@ -119,8 +119,8 @@ td.date {
 }
 
 .today {
-	background: cornflowerblue;
-	color: white;
+	outline: 3px solid crimson;
+	z-index: 3;
 }
 
 .diff-month {
@@ -129,10 +129,6 @@ td.date {
 
 .mark {
 	color: white;
-}
-
-td.today.mark {
-	box-shadow: 0 0 12px orange;
 }
 
 td.vsep, td.hsep {
