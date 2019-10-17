@@ -53,10 +53,10 @@ const Bus = {
 
 	Bus.on('fill-calendar', ({year, el}) => {
 		loadMarks();
-		for (const date of markedDates) {
+		for (const [date, color] of markedDates) {
 			const tds = calendarEl.querySelectorAll('td[data-date="' + date + '"]');
 			for (const td of tds)
-				td.classList.add('mark');
+				td.classList.add('mark', 'mark-' + color);
 		}
 	});
 
