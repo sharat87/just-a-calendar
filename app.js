@@ -62,7 +62,7 @@ const Bus = {
 
 	Bus.on('clear-marks', () => {
 		for (const td of calendarEl.querySelectorAll('td.mark'))
-			td.classList.remove('mark');
+			td.classList.remove('mark', 'mark-' + markedDates.get(td.dataset.date));
 		markedDates.clear();
 		saveMarks();
 	});
