@@ -1,272 +1,308 @@
 :root {
-  --bg-color: white;
-  --bg-color-alt: #F7F7F7;
-  --bg-color-hover: #09F;
-  --fg-color: black;
-  --fg-color-hover: white;
-  --highlight0: #F8F8F8;
-  --highlight1: #E5E5E5;
-  --highlight2: #BBB;
+	--bg-color: white;
+	--bg-color-alt: #F7F7F7;
+	--bg-color-hover: #09F;
+	--fg-color: black;
+	--fg-color-hover: white;
+	--highlight0: #F8F8F8;
+	--highlight1: #E5E5E5;
+	--highlight2: #BBB;
 }
 
 body {
-  background-color: var(--bg-color);
-  color: var(--fg-color);
-  font-family: 'PT Sans', serif;
-  margin: 0 auto;
-  box-sizing: border-box;
-  max-width: 1100px;
+	background-color: var(--bg-color);
+	color: var(--fg-color);
+	font-family: 'PT Sans', serif;
+	margin: 0 auto;
+	box-sizing: border-box;
+	max-width: 1100px;
 }
 
 code {
-  font-family: Consolas, Menlo, monospace;
-  font-size: inherit;
+	font-family: Consolas, Menlo, monospace;
+	font-size: inherit;
 }
 
 .dark {
-  --bg-color: #444;
-  --bg-color-alt: #333;
-  --fg-color: white;
-  --highlight0: #494949;
-  --highlight1: #555;
-  --highlight2: #777;
+	--bg-color: #444;
+	--bg-color-alt: #333;
+	--fg-color: white;
+	--highlight0: #494949;
+	--highlight1: #555;
+	--highlight2: #777;
 }
 
 a {
-  color: #09F;
+	color: #09F;
 }
 
 h1 {
-  margin-top: 0;
-  text-align: center;
-  letter-spacing: -1px;
+	margin-top: 0;
+	text-align: center;
+	letter-spacing: -1px;
 }
 
 input, button {
-  font: inherit;
-  cursor: pointer;
+	font: inherit;
+	cursor: pointer;
 }
 
 input {
-  background: transparent;
-  color: inherit;
-  border: 1px solid var(--highlight2);
+	background: transparent;
+	color: inherit;
+	border: 1px solid var(--highlight2);
 }
 
 button {
-  color: #017;
-  background-color: #CEF;
-  background-image: linear-gradient(transparent, rgba(0, 0, 200, .1));
-  border: none;
-  padding: 3px 12px;
-  border-radius: 3px;
-  min-width: 2em;
+	color: #017;
+	background-color: #CEF;
+	background-image: linear-gradient(transparent, rgba(0, 0, 200, .1));
+	border: none;
+	padding: 3px 12px;
+	border-radius: 3px;
+	min-width: 2em;
 }
 
 button:hover {
-  background-image: linear-gradient(transparent, rgba(0, 0, 200, .2));
+	background-image: linear-gradient(transparent, rgba(0, 0, 200, .2));
 }
 
 #yearInput {
-  width: 5em;
+	width: 5em;
 }
 
 #calendar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center
 }
 
 .month {
-  margin: 1em;
+	margin: 1em;
 }
 
 .controls {
-  margin: 1em 0 0;
-  text-align: center;
+	margin: 1em 0 0;
+	text-align: center;
 }
 
 table {
-  border-collapse: collapse;
+	border-collapse: collapse;
 }
 
 td, th {
-  border: 1px solid var(--highlight1);
-  padding: 3px 6px;
+	border: 1px solid var(--highlight1);
+	padding: 3px 6px;
 }
 
 .calendar {
-  margin: 0 auto;
+	margin: 0 auto;
 }
 
 td.month {
-  text-align: center;
-  font-weight: bold;
-  border-color: cornflowerblue;
+	text-align: center;
+	font-weight: bold;
+	border-color: cornflowerblue;
 }
 
 td.date {
-  text-align: right;
+	text-align: right;
 }
 
 td.date {
-  cursor: pointer;
-  position: relative;
+	cursor: pointer;
+	position: relative;
 }
 
 td.weekend {
-  background-color: var(--highlight1);
+	background-color: var(--highlight1);
 }
 
 td.today {
-  background: cornflowerblue;
-  color: white;
+	background: cornflowerblue;
+	color: white;
 }
 
 td.diff-month {
-  opacity: .4;
+	opacity: .4;
 }
 
 td.mark {
-  background-color: orange;
-  color: white;
+	color: white;
 }
 
 td.today.mark {
-  box-shadow: 0 0 12px orange;
+	box-shadow: 0 0 12px orange;
 }
 
 td.vsep, td.hsep {
-  border: none;
+	border: none;
 }
 
 .bubble {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background-color: gray;
-  position: absolute;
-  left: 3px;
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	border-radius: 3px;
+	background-color: gray;
+	position: absolute;
+	left: 3px;
 }
 
 .bubble.fixed-holiday {
-  background-color: red;
+	background-color: red;
 }
 
 .bubble.optional-holiday {
-  background-color: #F90;
+	background-color: #F90;
 }
 
 .settings {
-  text-align: center;
-  margin: 1em;
-  padding: 3px;
+	text-align: center;
+	margin: 1em;
+	padding: 3px;
 }
 
 .settings > * + * {
-  margin-left: 1em;
+	margin-left: 1em;
 }
 
 .popup {
-  background-color: var(--bg-color-alt);
-  display: none;
+	background-color: var(--bg-color-alt);
+	display: none;
 }
 
 .popup.show {
-  display: block;
+	display: block;
 }
 
 #highlights.show {
-  position: fixed;
-  top: 40px;
-  left: 40px;
-  border-radius: 6px;
-  border: 1px solid var(--highlight1);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .3);
-  display: flex;
+	position: fixed;
+	top: 40px;
+	left: 40px;
+	border-radius: 6px;
+	border: 1px solid var(--highlight1);
+	box-shadow: 0 6px 24px rgba(0, 0, 0, .3);
+	display: flex;
 }
 
 #highlights aside {
-  padding: 1em 0;
-  border-right: 1px solid var(--highlight1);
+	padding: 1em 0;
+	border-right: 1px solid var(--highlight1);
 }
 
 #highlights a {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  padding: 6px;
-  min-width: 96px;
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	padding: 6px;
+	min-width: 96px;
 }
 
 #highlights a:hover, #highlights a.active {
-  background: var(--highlight1);
+	background: var(--highlight1);
 }
 
 .date-list {
-  background-color: transparent;
-  color: inherit;
-  font: inherit;
-  border: none;
-  padding: 6px;
+	background-color: transparent;
+	color: inherit;
+	font: inherit;
+	border: none;
+	padding: 6px;
 }
 
 .date-list:focus {
-  outline: none;
+	outline: none;
 }
 
 .hl-pink {
-  background-color: #F09;
-  color: white;
+	background-color: #F09;
+	color: white;
 }
 
 .hl-green {
-  background-color: #0F9;
+	background-color: #0F9;
+}
+
+#color-selector {
+	position: fixed;
+	top: 20px;
+	right: 0;
+	border-width: 1px 0 1px 1px;
+	border-style: solid;
+	border-color: #999;
+	opacity: .6;
+}
+
+#color-selector:hover {
+	opacity: 1;
+}
+
+#color-selector .color {
+	border-radius: 1em;
+	width: 18px;
+	height: 18px;
+	padding: 2px;
+	display: block;
+	margin: 9px 6px;
+}
+
+#color-selector .color:hover {
+	background: inherit;
+}
+
+#color-selector .color.active {
+	box-shadow: 0 0 0 2px white, 0 0 0 4px hsl(0, 0%, 0%);
 }
 
 #cmenu.show {
-  position: absolute;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, .3);
+	position: absolute;
+	box-shadow: 0 3px 40px rgba(0, 0, 0, .8);
+	z-index: 5;
 }
 
 #cmenu a {
-  text-decoration: none;
-  color: inherit;
-  padding: 3px 6px;
-  display: block;
+	text-decoration: none;
+	color: inherit;
+	padding: 3px 6px;
+	display: block;
 }
 
 #cmenu a:hover {
-  background-color: var(--bg-color-hover);
-  color: var(--fg-color-hover);
+	background-color: var(--bg-color-hover);
+	color: var(--fg-color-hover);
+}
+
+.has-cmenu {
+	z-index: 8;
+	background-color: var(--bg-color-alt);
 }
 
 #help-dialog {
-  display: none;
-  position: fixed;
-  top: 3em;
-  left: 3em;
-  background-color: var(--bg-color-alt);
-  box-shadow: 6px 6px 36px var(--highlight1);
-  padding: 1em;
-  border-radius: 6px;
+	display: none;
+	position: fixed;
+	top: 3em;
+	left: 3em;
+	background-color: var(--bg-color-alt);
+	box-shadow: 6px 6px 36px var(--highlight1);
+	padding: 1em;
+	border-radius: 6px;
 }
 
 #help-dialog.open {
-  display: block;
+	display: block;
 }
 
 footer {
-  text-align: center;
-  border-top: 1px solid var(--highlight1);
-  margin-top: 3em;
-  opacity: .8;
-  font-size: .9em;
-  display: flex;
-  justify-content: space-between;
+	text-align: center;
+	border-top: 1px solid var(--highlight1);
+	margin-top: 3em;
+	opacity: .8;
+	font-size: .9em;
+	display: flex;
+	justify-content: space-between;
 }
 
 footer p {
-  margin: .5em 0 1em;
+	margin: .5em 0 1em;
 }
