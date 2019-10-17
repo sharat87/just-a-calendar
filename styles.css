@@ -13,6 +13,7 @@ body {
 	background-color: var(--bg-color);
 	color: var(--fg-color);
 	font-family: 'PT Sans', serif;
+	font-size: 18px;
 	margin: 0 auto;
 	box-sizing: border-box;
 	max-width: 1100px;
