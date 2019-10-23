@@ -183,7 +183,7 @@ function fillCalendar(year) {
 
 	for (const [monthI, monthName] of MONTHS.entries()) {
 		const table = mkMonthTable();
-		table.querySelector('th:empty').innerText = `${monthName} ${year}`;
+		table.querySelector('th:empty').innerHTML = `${monthName} <span class=year>${year}</span>`;
 		calendarEl.appendChild(table);
 
 		const first = mkDate(year, monthI, 1);
@@ -208,6 +208,7 @@ function fillCalendar(year) {
 		}
 	}
 
+	document.getElementById('yearTitle').innerText = year;
 	Bus.emit('fill-calendar', {year, el: calendarEl});
 }
 
