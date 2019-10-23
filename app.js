@@ -144,8 +144,14 @@ function main() {
 	if (localStorage.darkMode) {
 		const value = JSON.parse(localStorage.darkMode);
 		document.getElementById('darkCheckbox').checked = value ? 'checked' : '';
-		onToggleDark();
 	}
+	onToggleDark();
+
+	if (localStorage.ghostMode) {
+		const value = JSON.parse(localStorage.ghostMode);
+		document.getElementById('ghostCheckbox').checked = value ? 'checked' : '';
+	}
+	onToggleGhost();
 }
 
 function mkMonthTable() {
@@ -240,6 +246,15 @@ function onToggleDark() {
 	else
 		document.body.classList.remove('dark');
 	localStorage.darkMode = JSON.stringify(value);
+}
+
+function onToggleGhost() {
+	const value = document.getElementById('ghostCheckbox').checked;
+	if (value)
+		document.body.classList.add('ghosts');
+	else
+		document.body.classList.remove('ghosts');
+	localStorage.ghostMode = JSON.stringify(value);
 }
 
 function onGoToDate() {

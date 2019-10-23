@@ -26,11 +26,14 @@
 </main>
 
 <section class=settings>
+	<button type=button onClick='clearAllMarks()'
+		title='Click on any date to just mark / unmark it.'>Remove all marks</button>
 	<label class=btn>
 		<input type=checkbox onChange='onToggleDark()' id=darkCheckbox><span>Dark Mode</span>
 	</label>
-	<button type=button onClick='clearAllMarks()'
-		title='Click on any date to just mark / unmark it.'>Remove all marks</button>
+	<label class=btn>
+		<input type=checkbox onChange='onToggleGhost()' id=ghostCheckbox checked><span>Ghost Dates</span>
+	</label>
 </section>
 
 <footer>

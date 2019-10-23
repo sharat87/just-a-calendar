@@ -61,12 +61,8 @@ button, .btn {
 	cursor: pointer;
 }
 
-button:hover {
+button:hover, .btn:hover {
 	border-color: rgba(0, 0, 0, .5);
-}
-
-button:active {
-	background-image: linear-gradient(var(--bg-color-alt), var(--bg-color));
 }
 
 #yearInput {
@@ -127,6 +123,11 @@ td.date {
 
 .diff-month {
 	opacity: .4;
+	visibility: hidden;
+}
+
+.ghosts .diff-month {
+	visibility: visible;
 }
 
 .mark {
