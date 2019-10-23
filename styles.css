@@ -43,24 +43,22 @@ h1 {
 	letter-spacing: -1px;
 }
 
-input, button {
-	font: inherit;
-	cursor: pointer;
-}
-
 input {
+	font: inherit;
 	background: transparent;
 	color: inherit;
 	border: 1px solid var(--highlight2);
 }
 
-button {
+button, .btn {
 	color: inherit;
 	background-image: linear-gradient(var(--bg-color), var(--bg-color-alt));
 	border: 1px solid rgba(0, 0, 0, .2);
 	padding: 3px 12px;
 	border-radius: 2px;
 	min-width: 2em;
+	font: inherit;
+	cursor: pointer;
 }
 
 button:hover {

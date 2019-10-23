@@ -12,77 +12,77 @@
 <h1>Just a Calendar.</h1>
 
 <main>
-  <p class=controls>
-    <button type=button onclick='goToYear("-10")'>&minus;10</button>
-    <button type=button onclick='goToYear("-1")'>&minus;1</button>
-    <input type=number id=yearInput onchange='yearInputChanged(event)'>
-    <button type=button onclick='goToYear("+1")'>+1</button>
-    <button type=button onclick='goToYear("+10")'>+10</button>
-    <span>&middot;</span>
-    <button type=button onclick='onGoToDate()'><u>G</u>o to date</button>
-    <span>&middot; Hit '<code>?</code>' for help.</span>
-  </p>
-  <div id=calendar oncontextmenu='onCalendarContextMenu(event)'></div>
+	<p class=controls>
+		<button type=button onclick='goToYear("-10")'>&minus;10</button>
+		<button type=button onclick='goToYear("-1")'>&minus;1</button>
+		<input type=number id=yearInput onchange='yearInputChanged(event)'>
+		<button type=button onclick='goToYear("+1")'>+1</button>
+		<button type=button onclick='goToYear("+10")'>+10</button>
+		<span>&middot;</span>
+		<button type=button onclick='onGoToDate()'><u>G</u>o to date</button>
+		<span>&middot; Hit '<code>?</code>' for help.</span>
+	</p>
+	<div id=calendar oncontextmenu='onCalendarContextMenu(event)'></div>
 </main>
 
 <section class=settings>
-  <label>
-    <input type=checkbox onChange='onToggleDark()' id=darkCheckbox><span>Dark Mode</span>
-  </label>
-  <button type=button onClick='clearAllMarks()'
-    title='Click on any date to just mark / unmark it.'>Remove all marks</button>
+	<label class=btn>
+		<input type=checkbox onChange='onToggleDark()' id=darkCheckbox><span>Dark Mode</span>
+	</label>
+	<button type=button onClick='clearAllMarks()'
+		title='Click on any date to just mark / unmark it.'>Remove all marks</button>
 </section>
 
 <footer>
-  <p>Made out of pure need and frustration. Also, <span style='color:red'>&hearts;</span>.</p>
-  <p>&copy; 2018 &mdash; Shrikant Sharat Kandula. Source code on
-    <a href='https://github.com/sharat87/just-a-calendar'
-      target=_blank>GitHub</a>.</p>
+	<p>Made out of pure need and frustration. Also, <span style='color:red'>&hearts;</span>.</p>
+	<p>&copy; 2018 &mdash; Shrikant Sharat Kandula. Source code on
+		<a href='https://github.com/sharat87/just-a-calendar'
+			target=_blank>GitHub</a>.</p>
 </footer>
 
 <div id=cmenu onClick='onCmenuClick(event)' class=popup>
-  <a href=#>Copy</a>
+	<a href=#>Copy</a>
 </div>
 
 <div id=color-selector>
-  <button type=button class='color active' data-color=coral style='background: coral'></button>
-  <button type=button class=color data-color=deeppink style='background: deeppink'></button>
-  <button type=button class=color data-color=green style='background: green'></button>
-  <button type=button class=color data-color=purple style='background: purple'></button>
+	<button type=button class='color active' data-color=coral style='background: coral'></button>
+	<button type=button class=color data-color=deeppink style='background: deeppink'></button>
+	<button type=button class=color data-color=green style='background: green'></button>
+	<button type=button class=color data-color=purple style='background: purple'></button>
 </div>
 
 <div id=help-dialog>
-  <h1>Hotkeys</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Key</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>?</code></td>
-        <td>Toggle help popup</td>
-      </tr>
-      <tr>
-        <td><code>g</code></td>
-        <td>Go to a given date</td>
-      </tr>
-      <tr>
-        <td><code>n</code></td>
-        <td>Go to a next year</td>
-      </tr>
-      <tr>
-        <td><code>p</code></td>
-        <td>Go to a previous year</td>
-      </tr>
-      <tr>
-        <td><code>C</code></td>
-        <td>Clear all marks (over all years)</td>
-      </tr>
-    </tbody>
-  </table>
+	<h1>Hotkeys</h1>
+	<table>
+		<thead>
+			<tr>
+				<th>Key</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>?</code></td>
+				<td>Toggle help popup</td>
+			</tr>
+			<tr>
+				<td><code>g</code></td>
+				<td>Go to a given date</td>
+			</tr>
+			<tr>
+				<td><code>n</code></td>
+				<td>Go to a next year</td>
+			</tr>
+			<tr>
+				<td><code>p</code></td>
+				<td>Go to a previous year</td>
+			</tr>
+			<tr>
+				<td><code>C</code></td>
+				<td>Clear all marks (over all years)</td>
+			</tr>
+		</tbody>
+	</table>
 </div>
 
 <script src=app.js></script>
