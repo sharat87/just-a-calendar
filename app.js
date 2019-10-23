@@ -118,7 +118,8 @@ const ColorSelector = (function () {
 document.body.addEventListener('keydown', (event) => {
 	if (event.target.matches('input, textarea') && event.key !== 'Escape')
 		return;
-	switch(event.key) {
+	const key = (event.ctrlKey ? 'c-' : '') + event.key;
+	switch(key) {
 		case '?': toggleHelp(); break;
 		case 'g': onGoToDate(); break;
 		case 'n': goToYear('+1'); break;

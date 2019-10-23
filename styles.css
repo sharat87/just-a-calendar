@@ -81,7 +81,12 @@ button:hover, .btn:hover {
 
 .controls {
 	margin: 1em 0 0;
-	text-align: center;
+	display: flex;
+	justify-content: center;
+}
+
+.controls > * {
+	margin: 0 3px;
 }
 
 table {
@@ -157,13 +162,14 @@ td.vsep, td.hsep {
 }
 
 .settings {
-	text-align: center;
 	margin: 1em;
 	padding: 3px;
+	display: flex;
+	justify-content: center;
 }
 
-.settings > * + * {
-	margin-left: 1em;
+.settings > * {
+	margin: 0 .5em;
 }
 
 .popup {
