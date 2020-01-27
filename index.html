@@ -12,7 +12,7 @@
 <h1 class=screen>Just a Calendar.</h1>
 <h1 class=print>Just a <span id=yearTitle></span> Calendar &mdash; by calendar.sharats.me</h1>
 
-<main>
+<main oncontextmenu='onCalendarContextMenu(event)'>
 	<p class=controls>
 		<button type=button onclick='goToYear("-10")'>&minus;10</button>
 		<button type=button onclick='goToYear("-1")'>&minus;1</button>
@@ -22,7 +22,7 @@
 		<span>&middot;</span>
 		<button type=button onclick='onGoToDate()'><u>G</u>o to date</button>
 	</p>
-	<div id=calendar oncontextmenu='onCalendarContextMenu(event)'></div>
+	<div id=calendar class=year></div>
 </main>
 
 <section class=settings>

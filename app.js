@@ -177,14 +177,13 @@ function mkMonthTable() {
 	return mkMonthTable.tpl.cloneNode(true);
 }
 
-function fillCalendar(year) {
-	const calendarEl = document.getElementById('calendar');
-	calendarEl.innerHTML = '';
+function fillCalendar(root, year) {
+	root.innerHTML = '';
 
 	for (const [monthI, monthName] of MONTHS.entries()) {
 		const table = mkMonthTable();
 		table.querySelector('th:empty').innerHTML = `${monthName} <span class=year>${year}</span>`;
-		calendarEl.appendChild(table);
+		root.appendChild(table);
 
 		const first = mkDate(year, monthI, 1);
 		const leftTop = mkDate(year, monthI, 1 - (first.getDay() || 7));
@@ -208,8 +207,10 @@ function fillCalendar(year) {
 		}
 	}
 
-	document.getElementById('yearTitle').innerText = year;
-	Bus.emit('fill-calendar', {year, el: calendarEl});
+	if (root.id === 'calendar')
+		document.getElementById('yearTitle').innerText = year;
+
+	Bus.emit('fill-calendar', {year, el: root});
 }
 
 function mkDate(year, monthIndex, day) {
@@ -238,7 +239,7 @@ function goToYear(year) {
 	else
 		year = parseInt(year, 10);
 	yearInputEl.value = year;
-	fillCalendar(year);
+	fillCalendar(document.getElementById('calendar'), year);
 }
 
 function onToggleDark() {
