@@ -63,10 +63,16 @@ button:hover, .btn:hover {
 	width: 5em;
 }
 
-#calendar {
+.calendar {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: center
+	justify-content: center;
+}
+
+.calendar + .calendar {
+	margin-top: 1em;
+	padding-top: 1em;
+	border-top: 1px solid rgba(0, 0, 0, .1);
 }
 
 .month {
@@ -90,10 +96,6 @@ table {
 td, th {
 	border: 1px solid var(--highlight1);
 	padding: 3px 6px;
-}
-
-.calendar {
-	margin: 0 auto;
 }
 
 td.month {

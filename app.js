@@ -30,14 +30,13 @@ const Bus = {
 
 {
 	// Date marking.
-	const calendarEl = document.getElementById('calendar');
+	const mainEl = document.getElementById('main');
 	const markedDates = new Map;
 
-	calendarEl.addEventListener('click', (event) => {
-		const calendarEl = document.getElementById('calendar');
+	mainEl.addEventListener('click', (event) => {
 		if (!event.target.matches('td.date'))
 			return;
-		const tds = calendarEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
+		const tds = mainEl.querySelectorAll('td[data-date="' + event.target.dataset.date + '"]');
 		const date = event.target.dataset.date;
 		if (markedDates.has(date)) {
 			for (const td of tds)
@@ -54,14 +53,14 @@ const Bus = {
 	Bus.on('fill-calendar', ({year, el}) => {
 		loadMarks();
 		for (const [date, color] of markedDates) {
-			const tds = calendarEl.querySelectorAll('td[data-date="' + date + '"]');
+			const tds = mainEl.querySelectorAll('td[data-date="' + date + '"]');
 			for (const td of tds)
 				td.classList.add('mark', 'mark-' + color);
 		}
 	});
 
 	Bus.on('clear-marks', () => {
-		for (const td of calendarEl.querySelectorAll('td.mark'))
+		for (const td of mainEl.querySelectorAll('td.mark'))
 			td.classList.remove('mark', 'mark-' + markedDates.get(td.dataset.date));
 		markedDates.clear();
 		saveMarks();
@@ -137,8 +136,10 @@ document.body.addEventListener('keydown', (event) => {
 main();
 
 function main() {
-	const calendarEl = document.getElementById('calendar');
-	const yearInputEl = document.getElementById('yearInput');
+	document.getElementById('showNextYearBtn').addEventListener('click', onShowNextYearBtn);
+	Bus.on('fill-calendar', ({year, el}) => {
+		document.getElementById('showNextYearBtn').innerText = 'Show ' + (year + 1) + ' here';
+	});
 
 	goToYear(new Date().getFullYear());
 
@@ -207,10 +208,22 @@ function fillCalendar(root, year) {
 		}
 	}
 
-	if (root.id === 'calendar')
+	if (root.id === 'mainCalendar') {
 		document.getElementById('yearTitle').innerText = year;
+		for (const el of document.querySelectorAll('.calendar')) {
+			if (el !== root)
+				el.remove();
+		}
+	}
 
 	Bus.emit('fill-calendar', {year, el: root});
+}
+
+function onShowNextYearBtn(event) {
+	const nextYear = parseInt(event.target.innerText.match(/\d+/), 10);
+	const parent = event.target.closest('.controls');
+	parent.insertAdjacentHTML('beforeBegin', '<div class=calendar></div>');
+	fillCalendar(parent.previousElementSibling, nextYear);
 }
 
 function mkDate(year, monthIndex, day) {
@@ -239,7 +252,7 @@ function goToYear(year) {
 	else
 		year = parseInt(year, 10);
 	yearInputEl.value = year;
-	fillCalendar(document.getElementById('calendar'), year);
+	fillCalendar(document.getElementById('mainCalendar'), year);
 }
 
 function onToggleDark() {
@@ -309,7 +322,6 @@ function onCalendarContextMenu(event) {
 		return;
 	event.preventDefault();
 
-	const calendarEl = document.getElementById('calendar');
 	const cmenu = document.getElementById('cmenu');
 
 	const date = new Date(event.target.dataset.date);
