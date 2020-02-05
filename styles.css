@@ -12,7 +12,7 @@
 body {
 	background-color: var(--bg-color);
 	color: var(--fg-color);
-	font-family: 'PT Sans', serif;
+	font-family: Lato, serif;
 	font-size: 18px;
 	margin: 0 auto;
 	box-sizing: border-box;
@@ -20,7 +20,7 @@ body {
 }
 
 code {
-	font-family: Consolas, Menlo, monospace;
+	font-family: Consolas, Menlo, 'Roboto Mono', monospace;
 	font-size: inherit;
 }
 
@@ -260,12 +260,14 @@ td.vsep, td.hsep {
 	position: absolute;
 	box-shadow: 0 3px 40px rgba(0, 0, 0, .8);
 	z-index: 5;
+	font-size: .9em;
+	margin-left: 1px;
 }
 
 #cmenu a {
 	text-decoration: none;
 	color: inherit;
-	padding: 3px 6px;
+	padding: 6px 12px;
 	display: block;
 }
 
