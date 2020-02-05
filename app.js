@@ -1,7 +1,7 @@
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
 	'September', 'October', 'November', 'December'];
 
-class Bus {
+class EventBus {
 	constructor() {
 		this.listeners = new Map;
 	}
@@ -19,7 +19,27 @@ class Bus {
 	}
 }
 
-const GlobalBus = new Bus;
+const GlobalBus = new EventBus;
+
+class CalendarApp extends EventBus {
+
+	constructor(el) {
+		super();
+		this.el = el;
+	}
+
+	goToYear(year) {
+		// Clear all displayed years and show *just* the year given by `year` argument.
+		const yearInputEl = document.getElementById('yearInput');
+		if (typeof(year) === 'string' && (year[0] === '-' || year[0] === '+'))
+			year = parseInt(yearInputEl.value, 10) + parseInt(year, 10);
+		else
+			year = parseInt(year, 10);
+		yearInputEl.value = year;
+		fillCalendar(this.el.querySelector('#mainCalendar'), year);
+	}
+
+}
 
 function initTodayMarker() {
 	GlobalBus.on('fill-calendar', ({year, el}) => {
@@ -119,6 +139,8 @@ const ColorSelector = (function () {
 }());
 
 function main() {
+	const app = window.calendarApp = new CalendarApp(document.getElementById('main'));
+
 	initTodayMarker();
 	initDateMarking();
 
@@ -128,11 +150,11 @@ function main() {
 		const key = (event.ctrlKey ? 'c-' : '') + event.key;
 		switch(key) {
 			case '?': toggleHelp(); break;
-			case 'g': onGoToDate(); break;
-			case 'n': goToYear('+1'); break;
-			case 'p': goToYear('-1'); break;
-			case 'N': goToYear('+10'); break;
-			case 'P': goToYear('-10'); break;
+			case 'g': promptGoToDate(app); break;
+			case 'n': app.goToYear('+1'); break;
+			case 'p': app.goToYear('-1'); break;
+			case 'N': app.goToYear('+10'); break;
+			case 'P': app.goToYear('-10'); break;
 			case 'C': clearAllMarks(); break;
 			case 'Escape':
 				document.getElementById('highlights').classList.remove('show');
@@ -146,7 +168,7 @@ function main() {
 		document.getElementById('showNextYearBtn').innerText = 'Show ' + (year + 1) + ' here';
 	});
 
-	goToYear(new Date().getFullYear());
+	app.goToYear(new Date().getFullYear());
 
 	if (localStorage.darkMode) {
 		const value = JSON.parse(localStorage.darkMode);
@@ -250,16 +272,6 @@ function nextDate(date) {
 	return mkDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1);
 }
 
-function goToYear(year) {
-	const yearInputEl = document.getElementById('yearInput');
-	if (typeof(year) === 'string' && (year[0] === '-' || year[0] === '+'))
-		year = parseInt(yearInputEl.value, 10) + parseInt(year, 10);
-	else
-		year = parseInt(year, 10);
-	yearInputEl.value = year;
-	fillCalendar(document.getElementById('mainCalendar'), year);
-}
-
 function onToggleDark() {
 	const value = document.getElementById('darkCheckbox').checked;
 	if (value)
@@ -278,13 +290,13 @@ function onToggleGhost() {
 	localStorage.ghostMode = JSON.stringify(value);
 }
 
-function onGoToDate() {
+function promptGoToDate(app) {
 	const dateStr = prompt('Enter date (Any clearly understood format is okay):');
 	if (!dateStr)
 		return;
 	const date = parseDate(dateStr);
 	if (date)
-		goToYear(date.getFullYear());
+		app.goToYear(date.getFullYear());
 }
 
 function parseDate(dateStr) {

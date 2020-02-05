@@ -14,13 +14,13 @@
 
 <main id=main oncontextmenu='onCalendarContextMenu(event)'>
 	<p class=controls>
-		<button type=button onclick='goToYear("-10")'>&minus;10</button>
-		<button type=button onclick='goToYear("-1")'>&minus;1</button>
+		<button type=button onclick='calendarApp.goToYear("-10")'>&minus;10</button>
+		<button type=button onclick='calendarApp.goToYear("-1")'>&minus;1</button>
 		<input type=number id=yearInput onchange='yearInputChanged(event)'>
-		<button type=button onclick='goToYear("+1")'>+1</button>
-		<button type=button onclick='goToYear("+10")'>+10</button>
+		<button type=button onclick='calendarApp.goToYear("+1")'>+1</button>
+		<button type=button onclick='calendarApp.goToYear("+10")'>+10</button>
 		<span>&middot;</span>
-		<button type=button onclick='onGoToDate()'><u>G</u>o to date</button>
+		<button type=button onclick='promptGoToDate()'><u>G</u>o to date</button>
 	</p>
 	<div id=mainCalendar class=calendar></div>
 	<p class=controls>
