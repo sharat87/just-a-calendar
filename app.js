@@ -1,23 +1,28 @@
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
 	'September', 'October', 'November', 'December'];
 
-const Bus = {
-	listeners: new Map,
+class Bus {
+	constructor() {
+		this.listeners = new Map;
+	}
+
 	on(event, fn) {
 		if (!this.listeners.has(event))
 			this.listeners.set(event, []);
 		this.listeners.get(event).push(fn);
-	},
+	}
+
 	emit(event, data) {
 		if (this.listeners.has(event))
 			for (const fn of this.listeners.get(event))
 				fn(data);
-	},
-};
+	}
+}
 
-{
-	// Today highlighter.
-	Bus.on('fill-calendar', ({year, el}) => {
+const GlobalBus = new Bus;
+
+function initTodayMarker() {
+	GlobalBus.on('fill-calendar', ({year, el}) => {
 		const now = new Date;
 		if (now.getUTCFullYear() !== year)
 			return;
@@ -28,8 +33,7 @@ const Bus = {
 	});
 }
 
-{
-	// Date marking.
+function initDateMarking() {
 	const mainEl = document.getElementById('main');
 	const markedDates = new Map;
 
@@ -50,7 +54,7 @@ const Bus = {
 		saveMarks();
 	});
 
-	Bus.on('fill-calendar', ({year, el}) => {
+	GlobalBus.on('fill-calendar', ({year, el}) => {
 		loadMarks();
 		for (const [date, color] of markedDates) {
 			const tds = mainEl.querySelectorAll('td[data-date="' + date + '"]');
@@ -59,7 +63,7 @@ const Bus = {
 		}
 	});
 
-	Bus.on('clear-marks', () => {
+	GlobalBus.on('clear-marks', () => {
 		for (const td of mainEl.querySelectorAll('td.mark'))
 			td.classList.remove('mark', 'mark-' + markedDates.get(td.dataset.date));
 		markedDates.clear();
@@ -100,11 +104,11 @@ const ColorSelector = (function () {
 		if (!event.target.matches('.color'))
 			return;
 
-			if (activeEl)
-				activeEl.classList.remove('active');
+		if (activeEl)
+			activeEl.classList.remove('active');
 
-			activeEl = event.target;
-			activeEl.classList.add('active');
+		activeEl = event.target;
+		activeEl.classList.add('active');
 	});
 
 	return {
@@ -114,30 +118,31 @@ const ColorSelector = (function () {
 	};
 }());
 
-document.body.addEventListener('keydown', (event) => {
-	if (event.target.matches('input, textarea') && event.key !== 'Escape')
-		return;
-	const key = (event.ctrlKey ? 'c-' : '') + event.key;
-	switch(key) {
-		case '?': toggleHelp(); break;
-		case 'g': onGoToDate(); break;
-		case 'n': goToYear('+1'); break;
-		case 'p': goToYear('-1'); break;
-		case 'N': goToYear('+10'); break;
-		case 'P': goToYear('-10'); break;
-		case 'C': clearAllMarks(); break;
-		case 'Escape':
-			document.getElementById('highlights').classList.remove('show');
-			hideContextMenu();
-			break;
-	}
-});
-
-main();
-
 function main() {
+	initTodayMarker();
+	initDateMarking();
+
+	document.body.addEventListener('keydown', (event) => {
+		if (event.target.matches('input, textarea') && event.key !== 'Escape')
+			return;
+		const key = (event.ctrlKey ? 'c-' : '') + event.key;
+		switch(key) {
+			case '?': toggleHelp(); break;
+			case 'g': onGoToDate(); break;
+			case 'n': goToYear('+1'); break;
+			case 'p': goToYear('-1'); break;
+			case 'N': goToYear('+10'); break;
+			case 'P': goToYear('-10'); break;
+			case 'C': clearAllMarks(); break;
+			case 'Escape':
+				document.getElementById('highlights').classList.remove('show');
+				hideContextMenu();
+				break;
+		}
+	});
+
 	document.getElementById('showNextYearBtn').addEventListener('click', onShowNextYearBtn);
-	Bus.on('fill-calendar', ({year, el}) => {
+	GlobalBus.on('fill-calendar', ({year, el}) => {
 		document.getElementById('showNextYearBtn').innerText = 'Show ' + (year + 1) + ' here';
 	});
 
@@ -216,7 +221,7 @@ function fillCalendar(root, year) {
 		}
 	}
 
-	Bus.emit('fill-calendar', {year, el: root});
+	GlobalBus.emit('fill-calendar', {year, el: root});
 }
 
 function onShowNextYearBtn(event) {
@@ -314,7 +319,7 @@ function formatDate(date, format) {
 }
 
 function highlightSetsPopup() {
-	Bus.emit('highlight-sets-popup');
+	GlobalBus.emit('highlight-sets-popup');
 }
 
 function onCalendarContextMenu(event) {
@@ -413,7 +418,7 @@ function copyTextToClipboard(text) {
 }
 
 function clearAllMarks() {
-	Bus.emit('clear-marks');
+	GlobalBus.emit('clear-marks');
 }
 
 function toggleHelp() {
