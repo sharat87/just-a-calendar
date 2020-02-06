@@ -12,7 +12,7 @@
 body {
 	background-color: var(--bg-color);
 	color: var(--fg-color);
-	font-family: Lato, serif;
+	font-family: Nunito, serif;
 	font-size: 18px;
 	margin: 0 auto;
 	box-sizing: border-box;
