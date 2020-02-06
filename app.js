@@ -339,6 +339,11 @@ function onCalendarContextMenu(event) {
 		return;
 	event.preventDefault();
 
+	if (event.target.classList.contains('has-cmenu')) {
+		hideContextMenu();
+		return;
+	}
+
 	const cmenu = document.getElementById('cmenu');
 
 	const date = new Date(event.target.dataset.date);
