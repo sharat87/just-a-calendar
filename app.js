@@ -150,7 +150,7 @@ function main() {
 		const key = (event.ctrlKey ? 'c-' : '') + event.key;
 		switch(key) {
 			case '?': toggleHelp(); break;
-			case 'g': promptGoToDate(app); break;
+			case 'g': promptGoToDate(); break;
 			case 'n': app.goToYear('+1'); break;
 			case 'p': app.goToYear('-1'); break;
 			case 'N': app.goToYear('+10'); break;
@@ -294,7 +294,8 @@ function onToggleGhost() {
 	localStorage.ghostMode = JSON.stringify(value);
 }
 
-function promptGoToDate(app) {
+function promptGoToDate() {
+	const app = window.calendarApp;
 	const dateStr = prompt('Enter date (Any clearly understood format is okay):');
 	if (!dateStr)
 		return;
