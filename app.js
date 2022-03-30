@@ -46,7 +46,7 @@ function initTodayMarker() {
 		const now = new Date;
 		if (now.getUTCFullYear() !== year)
 			return;
-		const todayIso = isoString(now);
+		const todayIso = isoLocalString(now);
 		const tds = el.querySelectorAll('td[data-date="' + todayIso + '"]');
 		for (const td of tds)
 			td.classList.add('today');
@@ -266,6 +266,10 @@ function pad(str) {
 
 function isoString(date) {
 	return date ? `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}` : '';
+}
+
+function isoLocalString(date) {
+	return date ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` : '';
 }
 
 function nextDate(date) {
