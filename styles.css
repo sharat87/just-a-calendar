@@ -380,12 +380,20 @@ footer p {
 		margin: .3in -.5in 0;
 	}
 
+	.calendar {
+		/* Unfortunately, `flex` display screws up print layouts 10x. */
+		display: block;
+		text-align: center;
+	}
+
 	.today {
 		outline: none;
 	}
 
 	.month {
-		margin: .4em;  /* So all months fit in a single A4 page. */
+		margin: .4em 1.2em;
+		display: inline-block;
+		page-break-inside: avoid;
 	}
 
 	.weekend {

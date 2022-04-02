@@ -1,7 +1,16 @@
 import m from "mithril"
 
-const MONTHS = "January February March April May June July August September October November December".split(" ")
-const WEEKDAYS = "Sunday Monday Tuesday Wednesday Thursday Friday Saturday".split(" ")
+const LANG = "en"
+
+const MONTHS: string[] = []
+for (let i = 0, f = new Intl.DateTimeFormat(LANG, { month: "long" }).format; i < 12; ++i) {
+	MONTHS.push(f(new Date(Date.UTC(2000, i))))
+}
+
+const WEEKDAYS: string[] = []
+for (let i = 0, f = new Intl.DateTimeFormat(LANG, { weekday: "long" }).format; i < 7; ++i) {
+	WEEKDAYS.push(f(new Date(Date.UTC(2000, 0, i + 2))))
+}
 
 const MARK_COLORS = ["coral", "deeppink", "green", "purple"]
 
@@ -614,7 +623,10 @@ class MonthTableView implements m.ClassComponent<{ year: number, model: Model, m
 						date.getMonth() === month ? "" : "diff-month",
 						isWeekend(date) ? "weekend" : "",
 						isSameDate(date, today) ? "today" : "",
-						(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState) && isSameDate(date, model.dragState?.start) ? "drag-start" : "",
+						(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState)
+							&& isSameDate(date, model.dragState?.start)
+							&& dragDates.size > 1
+								? "drag-start" : "",
 						dragDates.has(dateStr)
 							? (model.dragState?.isUnmarking ? "" : `mark mark-${model.currentColor}`)
 							: (markedDates[dateStr] ? `mark mark-${markedDates[dateStr]}` : ""),
