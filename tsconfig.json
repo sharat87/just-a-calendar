@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"target": "ES6",
+		"esModuleInterop": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"skipLibCheck": true,
+		"noImplicitAny": true,
+		"lib": [
+			"ES2017",
+			"DOM"
+		]
+	}
+}

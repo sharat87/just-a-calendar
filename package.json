@@ -1,0 +1,16 @@
+{
+	"name": "just-a-calendar",
+	"version": "1.0.0",
+	"description": "Just a calendar web app",
+	"repository": "https://github.com/sharat87/just-a-calendar",
+	"author": "Shrikant Sharat Kandula <shrikantsharat.k@gmail.com>",
+	"license": "MIT",
+	"private": false,
+	"source": "index.html",
+	"devDependencies": {
+		"@types/mithril": "^2.0.10",
+		"mithril": "^2.0.4",
+		"parcel": "^2.4.0",
+		"typescript": "^4.6.3"
+	}
+}

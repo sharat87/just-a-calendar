@@ -9,14 +9,36 @@
 	--highlight2: #BBB;
 }
 
-body {
+* {
+	scrollbar-color: currentColor transparent;
+	scrollbar-width: thin;
+}
+
+html {
 	background-color: var(--bg-color);
 	color: var(--fg-color);
-	font-family: Nunito, serif;
+	overflow-y: scroll;
+}
+
+body {
+	font-family: Nunito, sans-serif;
 	font-size: 18px;
 	margin: 0 auto;
 	box-sizing: border-box;
 	max-width: 1100px;
+}
+
+h1 {
+	margin: 9px 0 0;
+	letter-spacing: -1px;
+}
+
+h1 + p {
+	margin-top: 3px;
+}
+
+h1, h2, .center {
+	text-align: center;
 }
 
 code {
@@ -24,20 +46,22 @@ code {
 	font-size: inherit;
 }
 
-.dark {
-	--bg-color: #444;
-	--bg-color-alt: #333;
-	--fg-color: white;
-	--highlight0: #494949;
-	--highlight1: #555;
-	--highlight2: #777;
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: #444;
+		--bg-color-alt: #333;
+		--fg-color: white;
+		--highlight0: #494949;
+		--highlight1: #555;
+		--highlight2: #777;
+	}
 }
 
 a {
 	color: #09F;
 }
 
-input {
+input, select {
 	font: inherit;
 	background: transparent;
 	color: inherit;
@@ -67,12 +91,7 @@ button:hover, .btn:hover {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-}
-
-.calendar + .calendar {
-	margin-top: 1em;
-	padding-top: 1em;
-	border-top: 1px solid rgba(0, 0, 0, .1);
+	margin-top: -1em;
 }
 
 .month {
@@ -80,13 +99,14 @@ button:hover, .btn:hover {
 }
 
 .controls {
-	margin: 1em 0 0;
+	margin: .5em;
 	display: flex;
 	justify-content: center;
+	flex-wrap: wrap;
 }
 
 .controls > * {
-	margin: 0 3px;
+	margin: .5em 3px;
 }
 
 table {
@@ -113,6 +133,12 @@ td.date {
 	position: relative;
 }
 
+.week-num {
+	cursor: pointer;
+	text-align: right;
+	font-size: .8em;
+}
+
 .weekend {
 	background-color: var(--highlight1);
 }
@@ -133,6 +159,27 @@ td.date {
 
 .mark {
 	color: white;
+}
+
+.mark-coral {
+	background: coral;
+}
+
+.mark-deeppink {
+	background: deeppink;
+}
+
+.mark-green {
+	background: green;
+}
+
+.mark-purple {
+	background: purple;
+}
+
+td.date.drag-start {
+	outline: 3px solid #07f;
+	z-index: 4;
 }
 
 td.vsep, td.hsep {
@@ -177,33 +224,6 @@ td.vsep, td.hsep {
 	display: block;
 }
 
-#highlights.show {
-	position: fixed;
-	top: 40px;
-	left: 40px;
-	border-radius: 6px;
-	border: 1px solid var(--highlight1);
-	box-shadow: 0 6px 24px rgba(0, 0, 0, .3);
-	display: flex;
-}
-
-#highlights aside {
-	padding: 1em 0;
-	border-right: 1px solid var(--highlight1);
-}
-
-#highlights a {
-	display: block;
-	text-decoration: none;
-	color: inherit;
-	padding: 6px;
-	min-width: 96px;
-}
-
-#highlights a:hover, #highlights a.active {
-	background: var(--highlight1);
-}
-
 .date-list {
 	background-color: transparent;
 	color: inherit;
@@ -225,40 +245,27 @@ td.vsep, td.hsep {
 	background-color: #0F9;
 }
 
-#color-selector {
-	position: fixed;
-	top: 20px;
-	right: 0;
-	border-width: 1px 0 1px 1px;
-	border-style: solid;
-	border-color: #999;
-	opacity: .6;
+.color-selector .color {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin: 0 .5ch;
+	border-radius: 50%;
+	vertical-align: middle;
+	cursor: pointer;
 }
 
-#color-selector:hover {
-	opacity: 1;
+.color-selector input[type=radio] {
+	display: none;
 }
 
-#color-selector .color {
-	border-radius: 1em;
-	width: 18px;
-	height: 18px;
-	padding: 2px;
-	display: block;
-	margin: 9px 6px;
+.color-selector :checked + .color {
+	outline: 3px solid currentColor;
 }
 
-#color-selector .color:hover {
-	background: inherit;
-}
-
-#color-selector .color.active {
-	box-shadow: 0 0 0 2px white, 0 0 0 4px hsl(0, 0%, 0%);
-}
-
-#cmenu.show {
+.cmenu {
 	position: absolute;
-	box-shadow: 0 3px 40px rgba(0, 0, 0, .8);
+	box-shadow: 0 3px 42px #0008;
 	z-index: 5;
 	font-size: .9em;
 	margin-left: 1px;
@@ -266,36 +273,42 @@ td.vsep, td.hsep {
 	overflow: hidden;
 }
 
-#cmenu a {
+.cmenu a {
 	text-decoration: none;
 	color: inherit;
 	padding: 6px 12px;
 	display: block;
 }
 
-#cmenu a:hover {
+.cmenu a:hover {
 	background-color: var(--bg-color-hover);
 	color: var(--fg-color-hover);
 }
 
 .has-cmenu {
 	z-index: 8;
-	background-color: var(--bg-color-alt);
+	background: var(--bg-color-alt);
+	color: var(--fg-color);
 }
 
-#help-dialog {
-	display: none;
+.dialog {
+	display: block;
 	position: fixed;
-	top: 3em;
-	left: 3em;
 	background-color: var(--bg-color-alt);
-	box-shadow: 6px 6px 36px var(--highlight1);
+	box-shadow: 6px 6px 36px #0005;
 	padding: 1em;
 	border-radius: 6px;
+	min-width: 270px;
+	top: 2em;
+	left: 50vw;
+	transform: translateX(-50%);
+	max-height: calc(100vh - 6em);
+	overflow: auto;
 }
 
-#help-dialog.open {
-	display: block;
+.help-dialog {
+	left: 2em;
+	transform: none;
 }
 
 footer {
@@ -305,6 +318,7 @@ footer {
 	opacity: .8;
 	font-size: .9em;
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 }
 
@@ -312,16 +326,45 @@ footer p {
 	margin: .5em 0 1em;
 }
 
-@media only screen {
+.drag-date-period {
+	position: fixed;
+	display: block;
+	pointer-events: none;
+	background: var(--fg-color);
+	color: var(--bg-color);
+	padding: 3px 6px;
+	border-radius: 3px;
+	box-shadow: 0 0 6px #0009;
+	z-index: 9;
+}
 
-	h1 {
-		margin-top: 0;
-		text-align: center;
-		letter-spacing: -1px;
-	}
+.close-btn {
+	display: block;
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	border-radius: 50%;
+	background: none;
+	border: none;
+}
+
+.close-btn:hover {
+	color: #f20;
+}
+
+@media only screen {
 
 	.print {
 		display: none;
+	}
+
+	h2 {
+		margin: 1em 0 6px;
+	}
+
+	hr {
+		border: none;
+		border-top: 1px solid currentColor;
 	}
 
 }
@@ -335,11 +378,6 @@ footer p {
 	h1 {
 		font-size: 21pt;
 		margin: .3in -.5in 0;
-		text-align: center;
-	}
-
-	#color-selector, .controls, .settings, footer {
-		display: none;
 	}
 
 	.today {
@@ -347,11 +385,15 @@ footer p {
 	}
 
 	.month {
-		margin: .7em;  /* So all months fit in a single A4 page. */
+		margin: .4em;  /* So all months fit in a single A4 page. */
 	}
 
-	.month .year {
-		display: none;
+	.weekend {
+		background: none;
+	}
+
+	hr {
+		visibility: hidden;
 	}
 
 }

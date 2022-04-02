@@ -1,0 +1,12 @@
+[build]
+	publish = "dist"
+	command = "make build"
+
+[build.environment]
+	NODE_VERSION = "14.15.3"
+
+[[headers]]
+	for = "/*"
+	[headers.values]
+		X-Frame-Options = "DENY"
+		X-XSS-Protection = "1; mode=block"

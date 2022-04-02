@@ -2,101 +2,12 @@
 <html lang=en>
 <meta charset=utf-8>
 <title>Just a Calendar.</title>
-
-<meta name=viewport content='width=device-width'>
-<meta name=author content='Shrikant Sharat Kandula'>
-<meta name=description content='Just a no nonsense calendar, to look at, plan things and generally reason about your days.'>
-
-<link rel=stylesheet href='https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap'>
-<link rel=stylesheet href=styles.css>
-
-<h1 class=screen>Just a Calendar.</h1>
-<h1 class=print>Just a <span id=yearTitle></span> Calendar &mdash; by calendar.sharats.me</h1>
-
+<meta name=viewport content="width=device-width">
+<meta name=author content="Shrikant Sharat Kandula">
+<meta name=description content="Just a no nonsense calendar, to look at, plan things and generally reason about your days.">
+<link rel=stylesheet href="https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap">
 <noscript><p>This website needs Javascript to run. This is a serverless static web application, that
 	does <b>not</b> require a login or any other shenanigans. A calendar is generated right inside
 	your browser and you get to look at it. That is all the point of this app.</p></noscript>
-
-<main id=main oncontextmenu='onCalendarContextMenu(event)'>
-	<p class=controls>
-		<button type=button onclick='calendarApp.goToYear("-10")'>&minus;10</button>
-		<button type=button onclick='calendarApp.goToYear("-1")'>&minus;1</button>
-		<input type=number id=yearInput onchange='yearInputChanged(event)'>
-		<button type=button onclick='calendarApp.goToYear("+1")'>+1</button>
-		<button type=button onclick='calendarApp.goToYear("+10")'>+10</button>
-		<span>&middot;</span>
-		<button type=button onclick='promptGoToDate()'><u>G</u>o to date</button>
-	</p>
-	<div id=mainCalendar class=calendar></div>
-	<p class=controls>
-		<button id=showNextYearBtn data-click=showNextYear></button>
-	</p>
-</main>
-
-<section class=settings>
-	<button type=button onClick='clearAllMarks()'
-		title='Click on any date to just mark / unmark it.'>Remove all marks</button>
-	<label class=btn>
-		<input type=checkbox onChange='onToggleDark()' id=darkCheckbox><span>Dark Mode</span>
-	</label>
-	<label class=btn>
-		<input type=checkbox onChange='onToggleGhost()' id=ghostCheckbox checked><span>Ghost Dates</span>
-	</label>
-</section>
-
-<footer>
-	<p>Made out of pure need and frustration. Also, <span style='color:red'>&hearts;</span>. Hit
-	<kbd>?</kbd> for help.</p>
-	<p>&copy; 2018-2020 &mdash; <a href='https://sharats.me'>Shrikant Sharat Kandula</a>. Source
-	code on <a href='https://github.com/sharat87/just-a-calendar' target=_blank>GitHub</a>.</p>
-</footer>
-
-<div id=cmenu onClick='onCmenuClick(event)' class=popup>
-	<a href=#>Copy</a>
-</div>
-
-<div id=color-selector>
-	<button type=button class='color active' data-color=coral style='background: coral'></button>
-	<button type=button class=color data-color=deeppink style='background: deeppink'></button>
-	<button type=button class=color data-color=green style='background: green'></button>
-	<button type=button class=color data-color=purple style='background: purple'></button>
-</div>
-
-<div id=help-dialog>
-	<h1>Hotkeys</h1>
-	<table>
-		<thead>
-			<tr>
-				<th>Key</th>
-				<th>Action</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><code>?</code></td>
-				<td>Toggle help popup</td>
-			</tr>
-			<tr>
-				<td><code>g</code></td>
-				<td>Go to a given date</td>
-			</tr>
-			<tr>
-				<td><code>n</code></td>
-				<td>Go to a next year</td>
-			</tr>
-			<tr>
-				<td><code>p</code></td>
-				<td>Go to a previous year</td>
-			</tr>
-			<tr>
-				<td><code>C</code></td>
-				<td>Clear all marks (over all years)</td>
-			</tr>
-		</tbody>
-	</table>
-</div>
-
-<script src=app.js></script>
-<script>
-window.onload = main;
-</script>
+<style>@import "styles.css"</style>
+<script type=module src=app.ts></script>
