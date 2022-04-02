@@ -19,7 +19,7 @@ class Model {
 	markedDates: Record<string, string>
 	dragState: null | DragBaseState
 	additionalCalendarCount: number
-	contextMenu: null | { date: string, top: number, left: number }
+	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
 	optionsViewPos: null | {
 		top: number
@@ -260,7 +260,7 @@ class RootView {
 		return m(
 			"div",
 			{
-				class: this.model.ghostDatesEnabled ? "ghosts" : null,
+				class: this.model.ghostDatesEnabled ? "ghosts" : undefined,
 				onmousedown: this.onMouseDown,
 				onmousemove: (event: MouseEvent) => {
 					const el = event.target as HTMLElement
@@ -270,14 +270,23 @@ class RootView {
 					}
 					if (this.model.dragState instanceof DragDateState) {
 						if (el.dataset.date != null) {
-							this.model.dragState.end = parseDate(el.dataset.date)
+							const d = parseDate(el.dataset.date)
+							if (d != null) {
+								this.model.dragState.end = d
+							}
 						}
 					} else if (this.model.dragState instanceof DragWeekState) {
 						if (el.dataset.weekStart != null) {
-							this.model.dragState.end = parseDate(el.dataset.weekStart)
+							const d = parseDate(el.dataset.weekStart)
+							if (d != null) {
+								this.model.dragState.end = d
+							}
 							this.model.dragState.endType = "week"
 						} else if (el.dataset.date != null) {
-							this.model.dragState.end = parseDate(el.dataset.date)
+							const d = parseDate(el.dataset.date)
+							if (d != null) {
+								this.model.dragState.end = d
+							}
 							this.model.dragState.endType = "date"
 						}
 					}
@@ -329,9 +338,9 @@ class RootView {
 		}
 
 		const el = event.target as HTMLElement
+		let d
 
-		if (el.dataset.date) {
-			const d = parseDate(el.dataset.date)
+		if (el.dataset.date && (d = parseDate(el.dataset.date)) != null) {
 			d.setHours(0)
 			d.setMinutes(0)
 			d.setSeconds(0)
@@ -344,8 +353,7 @@ class RootView {
 			event.preventDefault()
 		}
 
-		if (el.dataset.weekStart) {
-			const d = parseDate(el.dataset.weekStart)
+		if (el.dataset.weekStart && (d = parseDate(el.dataset.weekStart)) != null) {
 			d.setHours(0)
 			d.setMinutes(0)
 			d.setSeconds(0)
@@ -367,18 +375,23 @@ class RootView {
 			return
 		}
 		const el = event.target as HTMLElement
-		if (!el.matches("td.date") || event.shiftKey) {
+		if (el.dataset.date == null || event.shiftKey) {
 			return
 		}
 		event.preventDefault()
-		if (this.model.contextMenu?.date === el.dataset.date) {
+		const d = parseDate(el.dataset.date)
+		if (d == null) {
+			return
+		}
+
+		if (isSameDate(this.model.contextMenu?.date ?? null, d)) {
 			this.model.contextMenu = null
 		} else {
 			const tdRect = el.getBoundingClientRect()
 			this.model.contextMenu = {
-				date: el.dataset.date,
-				top: tdRect.bottom,
-				left: tdRect.left,
+				date: d,
+				top: tdRect.bottom + window.scrollY,
+				left: tdRect.left + window.scrollX,
 			}
 		}
 	}
@@ -433,7 +446,7 @@ class RootView {
 }
 
 class TitleView {
-	view({ attrs }) {
+	view() {
 		return [
 			m("h1", { class: "screen" }, "Just a Calendar."),
 			m("p.center", { class: "screen" }, [m.trust(dateToHumanReadable(new Date())), "."]),
@@ -588,7 +601,7 @@ class MonthTableView implements m.ClassComponent<{ year: number, model: Model, m
 					"th.week-num",
 					{
 						"data-week-start": dateToBasicIso(date),
-						class: date.getMonth() === month ? null : "diff-month",
+						class: date.getMonth() === month ? undefined : "diff-month",
 					},
 					weekNum,
 				))
@@ -603,10 +616,10 @@ class MonthTableView implements m.ClassComponent<{ year: number, model: Model, m
 						isSameDate(date, today) ? "today" : "",
 						(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState) && isSameDate(date, model.dragState?.start) ? "drag-start" : "",
 						dragDates.has(dateStr)
-							? (model.dragState.isUnmarking ? "" : `mark mark-${model.currentColor}`)
+							? (model.dragState?.isUnmarking ? "" : `mark mark-${model.currentColor}`)
 							: (markedDates[dateStr] ? `mark mark-${markedDates[dateStr]}` : ""),
-							dateStr === contextMenu?.date ? "has-cmenu" : "",
-					].join(" ").trim() || null,
+						isSameDate(date, contextMenu?.date ?? null) ? "has-cmenu" : "",
+					].join(" ").trim() || undefined,
 				}, date.getDate()))
 				date.setDate(date.getDate() + 1)
 			}
@@ -655,7 +668,7 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 			return null
 		}
 
-		const date = parseDate(model.contextMenu.date)
+		const date = model.contextMenu.date
 		const dateStrings = [
 			formatDate(date, "%Y-%m-%d"),
 			formatDate(date, "%m/%d/%Y"),
@@ -832,7 +845,7 @@ function isWeekend(date: Date): boolean {
 	return day === 0 || day === 6
 }
 
-function isSameDate(d1: Date, d2: Date): boolean {
+function isSameDate(d1: null | Date, d2: null | Date): boolean {
 	return d1 != null
 		&& d2 != null
 		&& d1.getDate() === d2.getDate()
@@ -867,7 +880,7 @@ function pad(n: number | string, len: number): string {
 	return str
 }
 
-function parseDate(dateStr: string): Date {
+function parseDate(dateStr: string): null | Date {
 	dateStr = dateStr.toLowerCase()
 
 	let d
@@ -891,7 +904,7 @@ function formatDate(date: Date, format: string): string {
 		format = "%Y-%m-%d"
 	}
 
-	return format.replace(/%(.)/g, (_: string, code: string): string => {
+	return format.replace(/%(.)/g, (match: string, code: string): string => {
 		switch(code) {
 			case "a":
 				return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"][date.getDay()]
@@ -906,6 +919,7 @@ function formatDate(date: Date, format: string): string {
 			case "Y":
 				return pad(date.getUTCFullYear(), 4)
 		}
+		return match
 	})
 }
 
@@ -990,5 +1004,8 @@ function copyText(text: string): void {
 
 function flash(selector: string): void {
 	const el = document.querySelector(selector)
+	if (el == null) {
+		return
+	}
 	el.scrollIntoView({ block: "center" })
 }

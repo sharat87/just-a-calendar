@@ -148,7 +148,7 @@ td.date {
 	z-index: 3;
 }
 
-.diff-month {
+.diff-month:not(.has-cmenu) {
 	opacity: .4;
 	visibility: hidden;
 }
