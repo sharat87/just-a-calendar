@@ -430,3 +430,24 @@ footer p {
 	}
 
 }
+
+.flash {
+	animation: flash .4s;
+}
+@keyframes flash {
+	0% {
+		transform: scale(1);
+		outline: 0 solid red;
+		box-shadow: 0 0 0 #0008;
+	}
+	50% {
+		transform: scale(3);
+		outline: 2px solid red;
+		box-shadow: 0 0 12px #0008;
+	}
+	100% {
+		transform: scale(1);
+		outline: 0 solid red;
+		box-shadow: 0 0 0 #0008;
+	}
+}

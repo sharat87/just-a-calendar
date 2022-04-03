@@ -1155,4 +1155,10 @@ function flash(selector: string): void {
 		return
 	}
 	el.scrollIntoView({ block: "center" })
+	el.classList.add("flash")
+	el.addEventListener("animationend", clear)
+	function clear() {
+		el?.classList.remove("flash")
+		el?.removeEventListener("animationend", clear)
+	}
 }
