@@ -344,7 +344,7 @@ class RootView {
 				}),
 				m(FooterView),
 				m(ContextMenuView, { model: this.model }),
-				m(DragDatePeriodView, { model: this.model }),
+				this.model.dragState != null && m(DragDatePeriodView, { dragState: this.model.dragState }),
 				this.model.visibleDialog === "options" && m(OptionsDialogView, { model: this.model }),
 				this.model.visibleDialog === "print" && m(PrintDialogView, { model: this.model }),
 				this.model.isHelpVisible && m(HelpPopupView),
@@ -772,33 +772,38 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 	}
 }
 
-class DragDatePeriodView implements m.ClassComponent<{ model: Model }> {
-	view(vnode: m.Vnode<{ model: Model }>): m.Children {
-		const { model } = vnode.attrs
+class DragDatePeriodView implements m.ClassComponent<{ dragState: DragBaseState }> {
+	view(vnode: m.Vnode<{ dragState: DragBaseState }>): m.Children {
+		const { dragState } = vnode.attrs
 
-		if (model.dragState == null) {
+		if (dragState == null) {
 			return null
 		}
 
-		const dayCount = model.dragState.computeDateSet().size
+		const dayCount = dragState.computeDateSet().size
 		if (dayCount < 2) {
 			return null
 		}
 
-		const offset =
-			(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState)
-				&& model.dragState.start.valueOf() > model.dragState.end.valueOf()
-			? -50 : 20
+		const { weeks } = computeMessagesForDayCount(dayCount)
+
+		const isBackwards =
+			(dragState instanceof DragDateState || dragState instanceof DragWeekState)
+				&& dragState.start.valueOf() > dragState.end.valueOf()
 
 		return m(
-			".drag-date-period",
+			"ul.drag-date-period",
 			{
+				class: isBackwards ? "up" : undefined,
 				style: {
-					top: (model.dragState.pos.y + offset) + "px",
-					left: model.dragState.pos.x + "px",
+					top: dragState.pos.y + "px",
+					left: dragState.pos.x + "px",
 				},
 			},
-			[dayCount, " day", dayCount > 1 && "s"],
+			[
+				m("li", [dayCount, " day", dayCount > 1 && "s"]),
+				weeks != null && m("li", [weeks, " week", weeks !== "1" && "s"]),
+			],
 		)
 	}
 }
@@ -1085,13 +1090,24 @@ function computeWeekNumber(date: Date): number {
 	return (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
 }
 
-function computePeriod(start: Date, end: Date): { days: number } {
-	start = resetTimeInDate(start)
-	end = resetTimeInDate(end)
-	const periodMillis = Math.abs(start.valueOf() - end.valueOf())
-	const days = 1 + Math.ceil(periodMillis / (24 * 60 * 60 * 1000))
+function computeMessagesForDayCount(days: number): { weeks: null | string } {
+	let weeks = null
+	if (days >= 7) {
+		const fullWeeks = Math.floor(days / 7)
+		const remainingDays = days % 7
+		if (remainingDays === 3 || remainingDays === 4) {
+			weeks = fullWeeks + "½"
+		} else if (remainingDays > 4) {
+			weeks = "<" + (fullWeeks + 1)
+		} else if (remainingDays === 0) {
+			weeks = fullWeeks.toString()
+		} else {
+			weeks = ">" + fullWeeks
+		}
+	}
+
 	return {
-		days,
+		weeks,
 	}
 }
 
@@ -1155,8 +1171,8 @@ function flash(selector: string): void {
 		return
 	}
 	el.scrollIntoView({ block: "center" })
-	el.classList.add("flash")
 	el.addEventListener("animationend", clear)
+	el.classList.add("flash")
 	function clear() {
 		el?.classList.remove("flash")
 		el?.removeEventListener("animationend", clear)

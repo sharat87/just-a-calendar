@@ -328,10 +328,16 @@ footer p {
 	pointer-events: none;
 	background: var(--fg-color);
 	color: var(--bg-color);
-	padding: 3px 6px;
+	padding: 3px 9px;
 	border-radius: 3px;
-	box-shadow: 0 0 6px #0009;
+	box-shadow: 0 0 9px #0009;
 	z-index: 9;
+	list-style: none;
+	transform: translateY(12px);
+}
+
+.drag-date-period.up {
+	transform: translateY(-100%) translateY(-24px);
 }
 
 .close-btn {
