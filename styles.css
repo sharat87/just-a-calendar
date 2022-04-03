@@ -1,4 +1,9 @@
-:root {
+* {
+	scrollbar-color: currentColor transparent;
+	scrollbar-width: thin;
+}
+
+html {
 	--bg-color: white;
 	--bg-color-alt: #F7F7F7;
 	--bg-color-hover: #09F;
@@ -7,17 +12,19 @@
 	--highlight0: #F8F8F8;
 	--highlight1: #E5E5E5;
 	--highlight2: #BBB;
-}
-
-* {
-	scrollbar-color: currentColor transparent;
-	scrollbar-width: thin;
-}
-
-html {
 	background-color: var(--bg-color);
 	color: var(--fg-color);
 	overflow-y: scroll;
+	color-scheme: light dark;
+}
+
+html.dark {
+	--bg-color: #444;
+	--bg-color-alt: #333;
+	--fg-color: white;
+	--highlight0: #494949;
+	--highlight1: #555;
+	--highlight2: #777;
 }
 
 body {
@@ -44,17 +51,6 @@ h1, h2, .center {
 code {
 	font-family: Consolas, Menlo, 'Roboto Mono', monospace;
 	font-size: inherit;
-}
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg-color: #444;
-		--bg-color-alt: #333;
-		--fg-color: white;
-		--highlight0: #494949;
-		--highlight1: #555;
-		--highlight2: #777;
-	}
 }
 
 a {
@@ -115,7 +111,7 @@ table {
 
 td, th {
 	border: 1px solid var(--highlight1);
-	padding: 3px 6px;
+	padding: .2em .4em;
 }
 
 td.month {
@@ -371,13 +367,42 @@ footer p {
 
 @media only print {
 
-	.screen {
+	.screen, .dialog {
 		display: none;
 	}
 
 	h1 {
 		font-size: 21pt;
 		margin: .3in -.5in 0;
+	}
+
+	h2 {
+		font-size: 18pt;
+		margin: .1in 0;
+	}
+
+	h1:not(:first-child) {
+		page-break-before: always;
+	}
+
+	body[data-print-layout="2"] {
+		font-size: 14pt;
+	}
+
+	body[data-print-layout="3"] {
+		font-size: 16pt;
+	}
+
+	body[data-print-layout="4"] {
+		font-size: 16pt;
+	}
+
+	body[data-print-layout="6"] {
+		font-size: 21pt;
+	}
+
+	body[data-print-layout="12"] {
+		font-size: 30pt;
 	}
 
 	.calendar {

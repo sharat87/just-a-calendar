@@ -21,6 +21,17 @@ function main() {
 	root.id = "root"
 	document.body.insertAdjacentElement("afterbegin", root)
 	m.mount(root, RootView)
+
+	window.matchMedia("(prefers-color-scheme: dark)").addListener(updateDarkMode)
+	updateDarkMode()
+}
+
+function updateDarkMode() {
+	if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+		document.body.parentElement?.classList.add("dark")
+	} else {
+		document.body.parentElement?.classList.remove("dark")
+	}
 }
 
 class Model {
@@ -30,10 +41,8 @@ class Model {
 	additionalCalendarCount: number
 	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
-	optionsViewPos: null | {
-		top: number
-		right: number
-	}
+	visibleDialog: null | "options" | "print"
+	printLayout: "1" | "2" | "3" | "4" | "6" | "12"  // Page count, months divided equally.
 
 	constructor() {
 		this.currentYear = 0
@@ -43,7 +52,8 @@ class Model {
 		this.additionalCalendarCount = 0
 		this.contextMenu = null
 		this.isHelpVisible = false
-		this.optionsViewPos = null
+		this.visibleDialog = null
+		this.printLayout = "2"
 
 		const now = new Date()
 		this.goToYear(now.getFullYear())
@@ -323,7 +333,7 @@ class RootView {
 				oncontextmenu: this.onContextMenu,
 			},
 			[
-				m(TitleView, { currentYear: this.model.currentYear }),
+				m(TitleView),
 				m(TopToolbarView, { model: this.model }),
 				m(CalendarView, {
 					year: this.model.currentYear,
@@ -335,8 +345,10 @@ class RootView {
 				m(FooterView),
 				m(ContextMenuView, { model: this.model }),
 				m(DragDatePeriodView, { model: this.model }),
-				this.model.optionsViewPos != null && m(OptionsPopupView, { model: this.model }),
+				this.model.visibleDialog === "options" && m(OptionsDialogView, { model: this.model }),
+				this.model.visibleDialog === "print" && m(PrintDialogView, { model: this.model }),
 				this.model.isHelpVisible && m(HelpPopupView),
+				m(StyleOverrides, { model: this.model }),
 			],
 		)
 	}
@@ -445,7 +457,7 @@ class RootView {
 				break
 			case "Escape":
 				this.model.isHelpVisible = false
-				this.model.optionsViewPos = this.model.contextMenu = this.model.dragState = null
+				this.model.visibleDialog = this.model.contextMenu = this.model.dragState = null
 				break
 		}
 
@@ -454,12 +466,11 @@ class RootView {
 
 }
 
-class TitleView {
+class TitleView implements m.ClassComponent {
 	view() {
 		return [
-			m("h1", { class: "screen" }, "Just a Calendar."),
-			m("p.center", { class: "screen" }, [m.trust(dateToHumanReadable(new Date())), "."]),
-			m("h1", { class: "print" }, m.trust(`Just a Calendar &mdash; by calendar.sharats.me`)),
+			m("h1.screen", "Just a Calendar."),
+			m("p.center.screen", [m.trust(dateToHumanReadable(new Date())), "."]),
 		]
 	}
 }
@@ -507,25 +518,31 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 				},
 			}, [m("u", "G"), "o to date"]),
 			m("button", {
+				title: "Options",
 				style: {
 					display: "flex",
 					alignItems: "center",
 				},
 				onclick(event: MouseEvent) {
-					if (model.optionsViewPos == null) {
-						const { x, width, y, height } = (event.target as HTMLElement).getBoundingClientRect()
-						model.optionsViewPos = { top: y + height, right: window.innerWidth - x - width }
-					} else {
-						model.optionsViewPos = null
-					}
+					model.visibleDialog = model.visibleDialog === "options" ? null : "options"
 				},
 			}, m(BurgerIcon)),
+			m("button", {
+				title: "Print",
+				style: {
+					display: "flex",
+					alignItems: "center",
+				},
+				onclick(event: MouseEvent) {
+					model.visibleDialog = model.visibleDialog === "print" ? null : "print"
+				},
+			}, m(PrinterIcon)),
 		])
 	}
 }
 
-class BurgerIcon implements m.ClassComponent {
-	view() {
+class Icon implements m.ClassComponent<any> {
+	view(vnode: m.Vnode<any>) {
 		return m(
 			"svg",
 			{
@@ -534,6 +551,18 @@ class BurgerIcon implements m.ClassComponent {
 				height: "1em",
 				viewBox: "0 0 10 10",
 				xmlns: "http://www.w3.org/2000/svg",
+				...vnode.attrs,
+			},
+			vnode.children,
+		)
+	}
+}
+
+class BurgerIcon implements m.ClassComponent {
+	view() {
+		return m(
+			Icon,
+			{
 				stroke: "currentColor",
 				"stroke-width": 1,
 			},
@@ -546,18 +575,47 @@ class BurgerIcon implements m.ClassComponent {
 	}
 }
 
+class PrinterIcon implements m.ClassComponent {
+	view() {
+		return m(
+			Icon,
+			{
+				stroke: "none",
+				fill: "currentColor",
+			},
+			[
+				m("rect", { x: 3, y: 2, width: 4, height: 2 }),
+				m("polygon", { points: "1,4 3,4 3,6 7,6 7,4 9,4 9,8 1,8" }),
+			],
+		)
+	}
+}
+
 class CalendarView implements m.ClassComponent<{ year: number, model: Model }> {
 	view(vnode: m.Vnode<{ year: number, model: Model }>) {
 		const { year, model } = vnode.attrs
-		const monthTables = []
+		const children = []
+
+		const factor = 12 / parseInt(model.printLayout, 10)
+		document.body.dataset.printLayout = model.printLayout
 
 		for (let i = 0; i < 12; ++i) {
-			monthTables.push(m(MonthTableView, { year, month: i, model }))
+			if (i % factor === 0) {
+				children.push(
+					m("h1.print", m.trust(`Just a Calendar &mdash; by calendar.sharats.me`)),
+					m("h2.print", [
+						factor === 1 ? MONTHS[i] : [MONTHS[i], m.trust(` &ndash; `), MONTHS[i + factor - 1]],
+						m.trust(" &mdash; "),
+						year,
+					]),
+				)
+			}
+			children.push(m(MonthTableView, { year, month: i, model }))
 		}
 
 		return [
-			m("h2", ["Year ", year]),
-			m(".calendar", monthTables),
+			m("h2.screen", ["Year ", year]),
+			m(".calendar", children),
 		]
 	}
 }
@@ -582,6 +640,7 @@ class AdditionalCalendarsView implements m.ClassComponent<{ model: Model }> {
 	}
 }
 
+// Renders a single month.
 class MonthTableView implements m.ClassComponent<{ year: number, model: Model, month: number }> {
 	view(vnode: m.Vnode<{ year: number, model: Model, month: number }>) {
 		const { markedDates, currentColor, contextMenu } = vnode.attrs.model
@@ -662,7 +721,7 @@ class FooterView implements m.ClassComponent {
 				" for help.",
 			]),
 			m("p", [
-				m.trust("&copy; 2018-2022 &mdash; "),
+				m.trust("&copy; 2018&ndash;2022 &mdash; "),
 				m("a", { href: "https://sharats.me", target: "_blank" }, "Shrikant Sharat Kandula"),
 				". Source code on ",
 				m("a", { href: "https://github.com/sharat87/just-a-calendar", target: "_blank" }, "GitHub"),
@@ -784,7 +843,11 @@ class HelpPopupView implements m.ClassComponent {
 	}
 }
 
-class OptionsPopupView implements m.ClassComponent<{ model: Model }> {
+class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
+	oncreate(vnode: m.VnodeDOM<{ model: Model }>) {
+		autofocusUnder(vnode.dom)
+	}
+
 	view(vnode: m.Vnode<{ model: Model }>) {
 		const { model } = vnode.attrs
 		return m(".dialog", [
@@ -845,11 +908,83 @@ class OptionsPopupView implements m.ClassComponent<{ model: Model }> {
 			m("button", {
 				class: "close-btn",
 				onclick() {
-					model.optionsViewPos = null
+					model.visibleDialog = null
 				},
 			}, m.trust("&times;")),
 		])
 	}
+}
+
+class PrintDialogView implements m.ClassComponent<{ model: Model }> {
+	oncreate(vnode: m.VnodeDOM<{ model: Model }>) {
+		autofocusUnder(vnode.dom)
+	}
+
+	view(vnode: m.Vnode<{ model: Model }>) {
+		const { model } = vnode.attrs
+		return m(".dialog", [
+			m("h1", "Print"),
+			m("p", m("label", [
+				m("span", "Layout: "),
+				m("select", {
+					value: model.printLayout,
+					onchange(event: Event) {
+						const value = (event.target as HTMLSelectElement).value
+						if (value === "1" || value === "2" || value === "3" || value === "4" || value === "6" || value === "12") {
+							model.printLayout = value
+						} else {
+							model.printLayout = "2"
+						}
+					},
+				}, [
+					m("option", { value: "1" }, "1 page, all 12 months"),
+					m("option", { value: "2" }, "2 pages, 6 months in each"),
+					m("option", { value: "3" }, "3 pages, 4 months in each"),
+					m("option", { value: "4" }, "4 pages, 3 months in each"),
+					m("option", { value: "6" }, "6 pages, 2 months in each"),
+					m("option", { value: "12" }, "12 pages, 1 month in each"),
+				]),
+			])),
+			m("p.center", m("button", {
+				onclick() {
+					model.prepareAndPrint()
+				},
+			}, "Print")),
+			m("button", {
+				class: "close-btn",
+				onclick() {
+					model.visibleDialog = null
+				},
+			}, m.trust("&times;")),
+		])
+	}
+}
+
+class StyleOverrides implements m.ClassComponent<{ model: Model }> {
+	view(vnode: m.Vnode<{ model: Model }>) {
+		const { model } = vnode.attrs
+
+		let printFontSize: number
+		if (model.printLayout === "2") {
+			printFontSize = 15
+		} else if (model.printLayout === "3") {
+			printFontSize = 18
+		} else {
+			printFontSize = 10
+		}
+
+		return m("style", [
+			"@media only print {",
+			"html {",
+			// `--font-size: ${printFontSize}pt;`,
+			"}",
+			"}",
+		])
+	}
+}
+
+function autofocusUnder(parent: Element): void {
+	(parent.querySelector("input, select, textarea") as HTMLElement)?.focus()
 }
 
 function isWeekend(date: Date): boolean {
