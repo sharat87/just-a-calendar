@@ -565,6 +565,7 @@ class BurgerIcon implements m.ClassComponent {
 			{
 				stroke: "currentColor",
 				"stroke-width": 1,
+				"stroke-linecap": "round",
 			},
 			[
 				m("line", { x1: 1, y1: 2, x2: 9, y2: 2 }),
