@@ -4,12 +4,12 @@ const LANG = "en"
 
 const MONTHS: string[] = []
 for (let i = 0, f = new Intl.DateTimeFormat(LANG, { month: "long" }).format; i < 12; ++i) {
-	MONTHS.push(f(new Date(Date.UTC(2000, i))))
+	MONTHS.push(f(new Date(2000, i)))
 }
 
 const WEEKDAYS: string[] = []
 for (let i = 0, f = new Intl.DateTimeFormat(LANG, { weekday: "long" }).format; i < 7; ++i) {
-	WEEKDAYS.push(f(new Date(Date.UTC(2000, 0, i + 2))))
+	WEEKDAYS.push(f(new Date(2000, 0, i + 2)))
 }
 
 const MARK_COLORS = ["coral", "deeppink", "green", "purple"]
@@ -217,7 +217,6 @@ class DragDateState extends DragBaseState {
 
 class DragWeekState extends DragBaseState {
 	start: Date
-	startType: "date" | "week"
 	end: Date
 	endType: "date" | "week"
 
@@ -225,7 +224,7 @@ class DragWeekState extends DragBaseState {
 		super()
 		this.start = start
 		this.end = end
-		this.startType = this.endType = "week"
+		this.endType = "week"
 	}
 
 	computeDateSet(): Set<string> {
@@ -263,6 +262,8 @@ class RootView {
 	constructor() {
 		this.model = new Model()
 		this.onMouseDown = this.onMouseDown.bind(this)
+		this.onMouseMove = this.onMouseMove.bind(this)
+		this.onMouseUp = this.onMouseUp.bind(this)
 		this.onContextMenu = this.onContextMenu.bind(this)
 		this.hotkeyHandler = this.hotkeyHandler.bind(this)
 	}
@@ -281,55 +282,7 @@ class RootView {
 			{
 				class: this.model.ghostDatesEnabled ? "ghosts" : undefined,
 				onmousedown: this.onMouseDown,
-				onmousemove: (event: MouseEvent) => {
-					const el = event.target as HTMLElement
-					// Bind this dynamically, only if dragging is in progress.
-					if (this.model.dragState == null) {
-						return
-					}
-					if (this.model.dragState instanceof DragDateState) {
-						if (el.dataset.date != null) {
-							const d = parseDate(el.dataset.date)
-							if (d != null) {
-								this.model.dragState.end = d
-							}
-						}
-					} else if (this.model.dragState instanceof DragWeekState) {
-						if (el.dataset.weekStart != null) {
-							const d = parseDate(el.dataset.weekStart)
-							if (d != null) {
-								this.model.dragState.end = d
-							}
-							this.model.dragState.endType = "week"
-						} else if (el.dataset.date != null) {
-							const d = parseDate(el.dataset.date)
-							if (d != null) {
-								this.model.dragState.end = d
-							}
-							this.model.dragState.endType = "date"
-						}
-					}
-					this.model.dragState.pos = {
-						x: event.clientX,
-						y: event.clientY,
-					}
-				},
-				onmouseup: (event: MouseEvent) => {
-					// Bind this dynamically, only if dragging is in progress.
-					if (this.model.dragState == null) {
-						return
-					}
-					const el = event.target as HTMLElement
-					for (const d of this.model.dragState.computeDateSet()) {
-						if (this.model.dragState.isUnmarking) {
-							this.model.unsetMark(d)
-						} else {
-							this.model.setMark(d)
-						}
-					}
-					this.model.dragState = null
-					event.preventDefault()
-				},
+				...(this.model.dragState == null ? {} : { onmousemove: this.onMouseMove, onmouseup: this.onMouseUp }),
 				oncontextmenu: this.onContextMenu,
 			},
 			[
@@ -348,7 +301,6 @@ class RootView {
 				this.model.visibleDialog === "options" && m(OptionsDialogView, { model: this.model }),
 				this.model.visibleDialog === "print" && m(PrintDialogView, { model: this.model }),
 				this.model.isHelpVisible && m(HelpPopupView),
-				m(StyleOverrides, { model: this.model }),
 			],
 		)
 	}
@@ -386,6 +338,59 @@ class RootView {
 			}
 			event.preventDefault()
 		}
+	}
+
+	private onMouseMove(event: MouseEvent) {
+		if (this.model.dragState == null) {
+			return
+		}
+
+		const el = event.target as HTMLElement
+		if (this.model.dragState instanceof DragDateState) {
+			if (el.dataset.date != null) {
+				const d = parseDate(el.dataset.date)
+				if (d != null) {
+					this.model.dragState.end = d
+				}
+			}
+
+		} else if (this.model.dragState instanceof DragWeekState) {
+			if (el.dataset.weekStart != null) {
+				const d = parseDate(el.dataset.weekStart)
+				if (d != null) {
+					this.model.dragState.end = d
+				}
+				this.model.dragState.endType = "week"
+			} else if (el.dataset.date != null) {
+				const d = parseDate(el.dataset.date)
+				if (d != null) {
+					this.model.dragState.end = d
+				}
+				this.model.dragState.endType = "date"
+			}
+
+		}
+
+		this.model.dragState.pos = {
+			x: event.clientX,
+			y: event.clientY,
+		}
+	}
+
+	private onMouseUp(event: MouseEvent) {
+		if (this.model.dragState == null) {
+			return
+		}
+		const el = event.target as HTMLElement
+		for (const d of this.model.dragState.computeDateSet()) {
+			if (this.model.dragState.isUnmarking) {
+				this.model.unsetMark(d)
+			} else {
+				this.model.setMark(d)
+			}
+		}
+		this.model.dragState = null
+		event.preventDefault()
 	}
 
 	private onContextMenu(event: MouseEvent) {
@@ -743,8 +748,12 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 		const dateStrings = [
 			formatDate(date, "%Y-%m-%d"),
 			formatDate(date, "%m/%d/%Y"),
-			date.toLocaleDateString(),
 		]
+
+		const localFormat = date.toLocaleDateString()
+		if (!dateStrings.includes(localFormat)) {
+			dateStrings.push(localFormat)
+		}
 
 		return m(
 			".cmenu.popup.show",
@@ -754,11 +763,24 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 					left: model.contextMenu.left + "px",
 				},
 			},
+			m(MarkColorInput, {
+				value: model.markedDates[dateToBasicIso(date)] ?? "",
+				onNewValue(value: string) {
+					if (value === "") {
+						delete model.markedDates[dateToBasicIso(date)]
+					} else {
+						model.markedDates[dateToBasicIso(date)] = value
+					}
+					model.contextMenu = null
+				},
+				includeClear: true,
+			}),
 			dateStrings.map((ds: string) => m("a", {
 				href: "#",
 				onclick(event: MouseEvent) {
 					event.preventDefault()
 					copyText(ds)
+					model.contextMenu = null
 				},
 			}, "Copy " + ds)),
 			m("a", {
@@ -857,19 +879,14 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 		const { model } = vnode.attrs
 		return m(".dialog", [
 			m("h1", "Options"),
-			m("p.color-selector", [
-				m("span", "Mark color: "),
-				MARK_COLORS.map((color) => m("label", [
-					m("input", {
-						type: "radio",
-						value: color,
-						checked: model.currentColor === color,
-						onchange(event: Event) {
-							model.currentColor = (event.target as HTMLInputElement).value
-						},
-					}),
-					m("span.color", { style: { background:  color} }),
-				])),
+			m("p", { style: { display: "flex", alignItems: "center" } }, [
+				m(MarkColorInput, {
+					value: model.currentColor,
+					onNewValue(value) {
+						model.currentColor = value
+					},
+					includeClear: false,
+				}),
 			]),
 			m("p", m("label", [
 				m("span", "Week starts on "),
@@ -891,7 +908,7 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 						model.weekNumbersEnabled = (event.target as HTMLInputElement).checked
 					},
 				}),
-				m("span", "Show week numbers"),
+				m("span", " Show week numbers"),
 			])),
 			m("p", m("label", [
 				m("input", {
@@ -901,7 +918,7 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 						model.ghostDatesEnabled = (event.target as HTMLInputElement).checked
 					},
 				}),
-				m("span", "Show surrounding dates"),
+				m("span", " Show surrounding dates"),
 			])),
 			m("button", {
 				onclick() {
@@ -965,25 +982,40 @@ class PrintDialogView implements m.ClassComponent<{ model: Model }> {
 	}
 }
 
-class StyleOverrides implements m.ClassComponent<{ model: Model }> {
-	view(vnode: m.Vnode<{ model: Model }>) {
-		const { model } = vnode.attrs
-
-		let printFontSize: number
-		if (model.printLayout === "2") {
-			printFontSize = 15
-		} else if (model.printLayout === "3") {
-			printFontSize = 18
-		} else {
-			printFontSize = 10
-		}
-
-		return m("style", [
-			"@media only print {",
-			"html {",
-			// `--font-size: ${printFontSize}pt;`,
-			"}",
-			"}",
+class MarkColorInput implements m.ClassComponent<{ value: string, onNewValue: (value: string) => void, includeClear: boolean }> {
+	view(vnode: m.Vnode<{ value: string, onNewValue: (value: string) => void, includeClear: boolean }>) {
+		const { value, onNewValue, includeClear } = vnode.attrs
+		return m("span.color-selector", [
+			m("span", "Mark color: "),
+			includeClear && m("label", { title: "Clear" }, [
+				m("input", {
+					type: "radio",
+					value: "",
+					checked: value === "",
+					onchange() {
+						onNewValue("")
+					},
+				}),
+				m(Icon, { stroke: "currentColor", "stroke-width": 1, "stroke-linecap": "round" }, [
+					m("line", { x1: 3, y1: 3, x2: 7, y2: 7 }),
+					m("line", { x1: 3, y1: 7, x2: 7, y2: 3 }),
+					value === "" && m("circle", { cx: 5, cy: 5, r: 4, fill: "none" }),
+				]),
+			]),
+			MARK_COLORS.map((color) => m("label", [
+				m("input", {
+					type: "radio",
+					value: color,
+					checked: value === color,
+					onchange() {
+						onNewValue(color)
+					},
+				}),
+				m(Icon, [
+					m("circle", { cx: 5, cy: 5, r: 3, fill: color }),
+					value === color && m("circle", { cx: 5, cy: 5, r: 4, fill: "none", "stroke-width": 1, stroke: "currentColor" }),
+				]),
+			])),
 		])
 	}
 }
@@ -993,7 +1025,7 @@ function autofocusUnder(parent: Element): void {
 }
 
 function isWeekend(date: Date): boolean {
-	const day = date.getDay()
+	const day = resetTimeInDate(date).getUTCDay()
 	return day === 0 || day === 6
 }
 

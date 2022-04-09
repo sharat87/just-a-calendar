@@ -241,22 +241,29 @@ td.vsep, td.hsep {
 	background-color: #0F9;
 }
 
-.color-selector .color {
-	display: inline-block;
-	width: 1em;
-	height: 1em;
-	margin: 0 .5ch;
-	border-radius: 50%;
-	vertical-align: middle;
-	cursor: pointer;
-}
+.color-selector {
+	display: flex;
+	align-items: center;
 
-.color-selector input[type=radio] {
-	display: none;
-}
+	& svg {
+		display: inline-block;
+		width: 1.3em;
+		height: 1.3em;
+		vertical-align: middle;
+		cursor: pointer;
+	}
 
-.color-selector :checked + .color {
-	outline: 3px solid currentColor;
+	& > label {
+		display: inline-flex;
+	}
+
+	& input[type=radio] {
+		display: none;
+	}
+
+	@nest .cmenu & {
+		padding: 6px 12px;
+	}
 }
 
 .cmenu {
@@ -294,12 +301,18 @@ td.vsep, td.hsep {
 	box-shadow: 6px 6px 36px #0005;
 	padding: 1em;
 	border-radius: 6px;
-	min-width: 270px;
 	top: 2em;
-	left: 50vw;
+	left: 50%;
 	transform: translateX(-50%);
 	max-height: calc(100vh - 6em);
 	overflow: auto;
+
+	@media (width <= 600px) {
+		left: 0;
+		right: 0;
+		border-radius: 0;
+		transform: none;
+	}
 }
 
 .help-dialog {

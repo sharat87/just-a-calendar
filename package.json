@@ -7,7 +7,13 @@
 	"license": "MIT",
 	"private": false,
 	"source": "index.html",
+	"@parcel/transformer-css": {
+		"drafts": {
+			"nesting": true
+		}
+	},
 	"devDependencies": {
+		"@parcel/transformer-webmanifest": "2.4.0",
 		"@types/mithril": "^2.0.10",
 		"mithril": "^2.0.4",
 		"parcel": "^2.4.0",

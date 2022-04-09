@@ -1,6 +1,5 @@
 serve:
-	yarn install
-	npx parcel serve --no-autoinstall --port 3020
+	npx parcel serve --port 3020
 
 build:
 	yarn install --frozen-lockfile
