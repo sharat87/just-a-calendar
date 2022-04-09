@@ -201,7 +201,8 @@ class DragDateState extends DragBaseState {
 		if (this.start == null || this.end == null) {
 			return new Set()
 		}
-		const [lowerDate, higherDate] = this.start.valueOf() < this.end.valueOf() ? [this.start, this.end] : [this.end, this.start]
+		const [lowerDate, higherDate] = resetTimeInDate(this.start).valueOf() < resetTimeInDate(this.end).valueOf()
+			? [this.start, this.end] : [this.end, this.start]
 		const d = new Date(lowerDate)
 
 		const dateSet: Set<string> = new Set()
@@ -235,7 +236,7 @@ class DragWeekState extends DragBaseState {
 		let lowerDate: Date
 		let higherDate: Date
 
-		if (this.start.valueOf() < this.end.valueOf()) {
+		if (resetTimeInDate(this.start).valueOf() < resetTimeInDate(this.end).valueOf()) {
 			lowerDate = this.start
 			higherDate = this.endType === "week" ? dateAddDays(this.end, 6): this.end
 		} else {
@@ -314,9 +315,6 @@ class RootView {
 		let d
 
 		if (el.dataset.date && (d = parseDate(el.dataset.date)) != null) {
-			d.setHours(0)
-			d.setMinutes(0)
-			d.setSeconds(0)
 			this.model.dragState = new DragDateState(d, d)
 			this.model.dragState.isUnmarking = this.model.markedDates[dateToBasicIso(d)] === this.model.currentColor,
 			this.model.dragState.pos = {
@@ -327,9 +325,6 @@ class RootView {
 		}
 
 		if (el.dataset.weekStart && (d = parseDate(el.dataset.weekStart)) != null) {
-			d.setHours(0)
-			d.setMinutes(0)
-			d.setSeconds(0)
 			this.model.dragState = new DragWeekState(d, d)
 			this.model.dragState.isUnmarking = this.model.markedDates[dateToBasicIso(d)] === this.model.currentColor
 			this.model.dragState.pos = {
@@ -1080,7 +1075,7 @@ function parseDate(dateStr: string): null | Date {
 		d = new Date(dateStr.replace(/-/g, ' '))
 	}
 
-	return isNaN(d.getTime()) ? null : new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+	return isNaN(d.getTime()) ? null : d
 }
 
 function formatDate(date: Date, format: string): string {
@@ -1118,7 +1113,7 @@ function computeWeekNumber(date: Date): number {
 		return computeWeekNumber(new Date(firstJan.getFullYear() + 1, 0, 1))
 	}
 
-	const dayCount = (date.valueOf() - firstJan.valueOf()) / (24 * 60 * 60 * 1000)
+	const dayCount = (resetTimeInDate(date).valueOf() - resetTimeInDate(firstJan).valueOf()) / (24 * 60 * 60 * 1000)
 	return (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
 }
 
@@ -1162,21 +1157,6 @@ function resetTimeInDate(date: Date): Date {
 	date.setMinutes(0)
 	date.setSeconds(0)
 	return date
-}
-
-function* iterateDates(start: null | Date, end: null | Date) {
-	if (start == null || end == null) {
-		return
-	}
-	if (start.valueOf() > end.valueOf()) {
-		[start, end] = [end, start]
-	}
-	const d = new Date(start)
-	while (!isSameDate(d, end)) {
-		yield d
-		d.setDate(d.getDate() + 1)
-	}
-	yield end
 }
 
 function dateAddDays(d: Date, delta: number): Date {
