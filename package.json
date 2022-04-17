@@ -7,12 +7,17 @@
 	"license": "MIT",
 	"private": false,
 	"source": "index.html",
+	"browserslist": [
+		"since 2017-06"
+	],
 	"@parcel/transformer-css": {
 		"drafts": {
 			"nesting": true
 		}
 	},
 	"devDependencies": {
+		"@parcel/packager-raw-url": "2.4.0",
+		"@parcel/service-worker": "^2.4.1",
 		"@parcel/transformer-webmanifest": "2.4.0",
 		"@types/mithril": "^2.0.10",
 		"mithril": "^2.0.4",

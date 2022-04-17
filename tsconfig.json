@@ -6,6 +6,8 @@
 		"strictPropertyInitialization": true,
 		"skipLibCheck": true,
 		"noImplicitAny": true,
+		"module": "ES2020",
+		"isolatedModules": true,
 		"lib": [
 			"ES2017",
 			"DOM"

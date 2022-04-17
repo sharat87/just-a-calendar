@@ -1,5 +1,8 @@
 /node_modules
 /dist
 .parcel-cache
+/yarn-error.log
+/*.pem
+/tmp-chrome-profile
 
 .DS_Store

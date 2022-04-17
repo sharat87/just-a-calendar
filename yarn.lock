@@ -364,6 +364,14 @@
     globals "^13.2.0"
     nullthrows "^1.1.1"
 
+"@parcel/packager-raw-url@2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@parcel/packager-raw-url/-/packager-raw-url-2.4.0.tgz#781f0512c61e408f2b2dc9407885445d51e0906b"
+  integrity sha512-di1OEbOnqD6FmI8JT02xHs04Nl/etMNr35YvL9pZdorOv66qgyi9LONJuH7GKT9fpdkMz1rjM7RrzdyYRpg8lw==
+  dependencies:
+    "@parcel/plugin" "2.4.0"
+    "@parcel/utils" "2.4.0"
+
 "@parcel/packager-raw@2.4.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@parcel/packager-raw/-/packager-raw-2.4.0.tgz#bdb2576f154e897947bf6331d7711d4a6258d1e8"
@@ -449,6 +457,11 @@
     "@parcel/plugin" "2.4.0"
     "@parcel/utils" "2.4.0"
     nullthrows "^1.1.1"
+
+"@parcel/service-worker@^2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@parcel/service-worker/-/service-worker-2.4.1.tgz#41c6db69c4507fec5a0851bfe94062b44fbba733"
+  integrity sha512-SU0IqZjqNVqI0XEghQeUuqBmhMaRSz7sKuP1a6+uvrCTskNgU9VFNgxmlVkBwe/EvPIQfDsNgwRFPN7IthVBHQ==
 
 "@parcel/source-map@^2.0.0":
   version "2.0.2"

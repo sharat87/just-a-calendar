@@ -24,6 +24,12 @@ function main() {
 
 	window.matchMedia("(prefers-color-scheme: dark)").addListener(updateDarkMode)
 	updateDarkMode()
+
+	// Register a service-worker to support PWA installations.
+	navigator.serviceWorker.register(
+		new URL("./sw.js", import.meta.url),
+		{ type: "module" },
+	)
 }
 
 function updateDarkMode() {
@@ -37,26 +43,37 @@ function updateDarkMode() {
 class Model {
 	currentYear: number
 	markedDates: Record<string, string>
+	markStorage: "localStorage" | "queryParams"
 	dragState: null | DragBaseState
 	additionalCalendarCount: number
 	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
-	visibleDialog: null | "options" | "print"
+	visibleDialog: null | "options"
 	printLayout: "1" | "2" | "3" | "4" | "6" | "12"  // Page count, months divided equally.
+	colorChangedByHotkeyAt: number
 
 	constructor() {
+		// Ensure every field has a default value, before _any_ method is called.
 		this.currentYear = 0
 		this.markedDates = {}
+		this.markStorage = "localStorage"
 		this.dragState = null
-		this.loadMarks()
 		this.additionalCalendarCount = 0
 		this.contextMenu = null
 		this.isHelpVisible = false
 		this.visibleDialog = null
 		this.printLayout = "2"
+		this.colorChangedByHotkeyAt = 0
 
 		const now = new Date()
 		this.goToYear(now.getFullYear())
+
+		const url = new URL(location.toString())
+		const urlDs = url.searchParams.get("d")
+		if (urlDs != null) {
+			this.markStorage = "queryParams"
+		}
+		this.loadMarks()
 	}
 
 	goToYear(target: number | string) {
@@ -150,18 +167,89 @@ class Model {
 	}
 
 	loadMarks() {
-		const body = localStorage.getItem("marksV2")
-		if (body == null) {
-			return
-		}
-		const data = JSON.parse(body)
-		for (const [date, color] of data) {
-			this.markedDates[date.replace(/\D/g, "")] = color
+		this.markedDates = {}
+
+		if (this.markStorage === "localStorage") {
+			this.markedDates = this.loadLocalStorageMarks()
+
+		} else if (this.markStorage === "queryParams") {
+			const urlDs = new URL(location.toString()).searchParams.get("d")
+			if (urlDs == null) {
+				console.error("Attempt to load marks from query params, when not available.")
+				// Switch to `localStorage` here?
+				return
+			}
+
+			// Example: ?d=ccoral,20220110,20221223,cdeeppink,20200101
+			const parts: string[] = urlDs.split(",")
+
+			let currentColor = MARK_COLORS[0]
+
+			for (const part of parts) {
+				const instruction = part.charAt(0)
+				if (instruction === "c") {
+					currentColor = part.substr(1)
+				} else if (part.match(/^\d{8}$/)) {
+					this.markedDates[part] = currentColor
+				} else {
+					console.error(`Couldn't parse date '${part}'. Should be in the format 'YYYYMMDD' only.`)
+				}
+			}
+
 		}
 	}
 
 	saveMarks() {
-		localStorage.setItem("marksV2", JSON.stringify(Object.entries(this.markedDates)))
+		if (this.markStorage === "localStorage") {
+			localStorage.setItem("marksV2", JSON.stringify(Object.entries(this.markedDates)))
+
+		} else if (this.markStorage === "queryParams") {
+			history.replaceState(null, "", this.generateLinkWithMarks())
+
+		}
+	}
+
+	getLocalStorageMarkCount(): number {
+		return Object.keys(this.loadLocalStorageMarks()).length
+	}
+
+	loadLocalStorageMarks(): Record<string, string> {
+		const markedDates: Record<string, string> = {}
+
+		const body = localStorage.getItem("marksV2")
+		if (body == null) {
+			return {}
+		}
+
+		const data = JSON.parse(body)
+		for (const [date, color] of data) {
+			markedDates[date.replace(/\D/g, "")] = color
+		}
+
+		return markedDates
+	}
+
+	generateLinkWithMarks(): string {
+		const datesByColor: Record<string, string[]> = {}
+		for (const [dateStr, markColor] of Object.entries(this.markedDates)) {
+			(datesByColor[markColor] ?? (datesByColor[markColor] = [])).push(dateStr)
+		}
+
+		const colors: string[] = Object.keys(datesByColor)
+		colors.sort()
+
+		const parts: string[] = []
+		for (const color of colors) {
+			parts.push("c" + color)
+			for (const dateStr of datesByColor[color].sort()) {
+				parts.push(dateStr)
+			}
+		}
+
+		const url = new URL(location.toString())
+		url.search = "?d=" + parts.join(",")
+		return url.toString()
+
 	}
 
 	prepareAndPrint() {
@@ -201,7 +289,7 @@ class DragDateState extends DragBaseState {
 		if (this.start == null || this.end == null) {
 			return new Set()
 		}
-		const [lowerDate, higherDate] = resetTimeInDate(this.start).valueOf() < resetTimeInDate(this.end).valueOf()
+		const [lowerDate, higherDate] = normalizedValueOf(this.start) < normalizedValueOf(this.end)
 			? [this.start, this.end] : [this.end, this.start]
 		const d = new Date(lowerDate)
 
@@ -236,7 +324,7 @@ class DragWeekState extends DragBaseState {
 		let lowerDate: Date
 		let higherDate: Date
 
-		if (resetTimeInDate(this.start).valueOf() < resetTimeInDate(this.end).valueOf()) {
+		if (normalizedValueOf(this.start) < normalizedValueOf(this.end)) {
 			lowerDate = this.start
 			higherDate = this.endType === "week" ? dateAddDays(this.end, 6): this.end
 		} else {
@@ -259,9 +347,15 @@ class DragWeekState extends DragBaseState {
 
 class RootView {
 	model: Model
+	touchStartedAt: null | {
+		time: number
+		scrollX: number
+		scrollY: number
+	}
 
 	constructor() {
 		this.model = new Model()
+		this.touchStartedAt = null
 		this.onMouseDown = this.onMouseDown.bind(this)
 		this.onMouseMove = this.onMouseMove.bind(this)
 		this.onMouseUp = this.onMouseUp.bind(this)
@@ -285,6 +379,26 @@ class RootView {
 				onmousedown: this.onMouseDown,
 				...(this.model.dragState == null ? {} : { onmousemove: this.onMouseMove, onmouseup: this.onMouseUp }),
 				oncontextmenu: this.onContextMenu,
+				ontouchstart: (event: TouchEvent) => {
+					if ((event.target as HTMLElement).dataset.date != null) {
+						this.touchStartedAt = {
+							time: Date.now(),
+							scrollX: window.scrollX,
+							scrollY: window.scrollY,
+						}
+					}
+				},
+				ontouchend: (event: TouchEvent) => {
+					const dateStr = (event.target as HTMLElement).dataset.date
+					if (dateStr != null
+							&& this.touchStartedAt != null
+							&& Date.now() - this.touchStartedAt.time < 200
+							&& Math.abs(window.scrollX - this.touchStartedAt.scrollX) < 3
+							&& Math.abs(window.scrollY - this.touchStartedAt.scrollY) < 3
+					) {
+						this.model.toggleMark(dateStr)
+					}
+				},
 			},
 			[
 				m(TitleView),
@@ -300,8 +414,10 @@ class RootView {
 				m(ContextMenuView, { model: this.model }),
 				this.model.dragState != null && m(DragDatePeriodView, { dragState: this.model.dragState }),
 				this.model.visibleDialog === "options" && m(OptionsDialogView, { model: this.model }),
-				this.model.visibleDialog === "print" && m(PrintDialogView, { model: this.model }),
-				this.model.isHelpVisible && m(HelpPopupView),
+				this.model.isHelpVisible && m(HelpDialogView),
+				m(StorageInfoView, { model: this.model }),
+				Date.now() - this.model.colorChangedByHotkeyAt < 3000 &&
+					m(ColorChangeOSDView, { model: this.model }),
 			],
 		)
 	}
@@ -455,6 +571,14 @@ class RootView {
 			case "P":
 				this.model.goToYear("-5")
 				break
+			case "1":
+			case "2":
+			case "3":
+			case "4":
+				this.model.currentColor = MARK_COLORS[parseInt(event.key, 10) - 1]
+				this.model.colorChangedByHotkeyAt = Date.now()
+				setTimeout(m.redraw, 3000)
+				break
 			case "Escape":
 				this.model.isHelpVisible = false
 				this.model.visibleDialog = this.model.contextMenu = this.model.dragState = null
@@ -470,7 +594,7 @@ class TitleView implements m.ClassComponent {
 	view() {
 		return [
 			m("h1.screen", "Just a Calendar."),
-			m("p.center.screen", [m.trust(dateToHumanReadable(new Date())), "."]),
+			m("p.center.screen", ["🎉 ", m.trust(dateToHumanReadable(new Date())), "."]),
 		]
 	}
 }
@@ -489,8 +613,7 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 					model.goToYear("-1")
 				},
 			}, m.trust("&minus;1")),
-			m("input", {
-				id: "yearInput",
+			m("input.year-input", {
 				type: "number",
 				value: model.currentYear,
 				onchange(event: InputEvent) {
@@ -527,16 +650,6 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 					model.visibleDialog = model.visibleDialog === "options" ? null : "options"
 				},
 			}, m(BurgerIcon)),
-			m("button", {
-				title: "Print",
-				style: {
-					display: "flex",
-					alignItems: "center",
-				},
-				onclick(event: MouseEvent) {
-					model.visibleDialog = model.visibleDialog === "print" ? null : "print"
-				},
-			}, m(PrinterIcon)),
 		])
 	}
 }
@@ -551,6 +664,7 @@ class Icon implements m.ClassComponent<any> {
 				height: "1em",
 				viewBox: "0 0 10 10",
 				xmlns: "http://www.w3.org/2000/svg",
+				"stroke-linecap": "round",
 				...vnode.attrs,
 			},
 			vnode.children,
@@ -565,7 +679,6 @@ class BurgerIcon implements m.ClassComponent {
 			{
 				stroke: "currentColor",
 				"stroke-width": 1,
-				"stroke-linecap": "round",
 			},
 			[
 				m("line", { x1: 1, y1: 2, x2: 9, y2: 2 }),
@@ -587,6 +700,23 @@ class PrinterIcon implements m.ClassComponent {
 			[
 				m("rect", { x: 3, y: 2, width: 4, height: 2 }),
 				m("polygon", { points: "1,4 3,4 3,6 7,6 7,4 9,4 9,8 1,8" }),
+			],
+		)
+	}
+}
+
+class InfoIcon implements m.ClassComponent {
+	view() {
+		return m(
+			Icon,
+			{
+				stroke: "currentColor",
+				fill: "none",
+			},
+			[
+				m("circle", { cx: 5, cy: 5, r: 4 }),
+				m("line", { x1: 5, y1: 3, x2: 5, y2: 5 }),
+				m("line", { x1: 5, y1: 6.5, x2: 5, y2: 7 }),
 			],
 		)
 	}
@@ -715,15 +845,13 @@ class FooterView implements m.ClassComponent {
 	view() {
 		return m("footer.screen", [
 			m("p", [
-				"Made out of pure need and frustration. Also, ",
-				m("span", { style: { color: "red" } }, m.trust("&hearts;")),
-				". Hit ",
-				m("kbd", "?"),
+				"Made out of pure need and frustration. Hit ",
+ 				m("kbd", "?"),
 				" for help.",
 			]),
 			m("p", [
 				m.trust("&copy; 2018&ndash;2022 &mdash; "),
-				m("a", { href: "https://sharats.me", target: "_blank" }, "Shrikant Sharat Kandula"),
+				m("a", { href: "https://sharats.me", target: "_blank" }, "Shri"),
 				". Source code on ",
 				m("a", { href: "https://github.com/sharat87/just-a-calendar", target: "_blank" }, "GitHub"),
 				".",
@@ -767,6 +895,7 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 					} else {
 						model.markedDates[dateToBasicIso(date)] = value
 					}
+					model.saveMarks()
 					model.contextMenu = null
 				},
 				includeClear: true,
@@ -826,7 +955,7 @@ class DragDatePeriodView implements m.ClassComponent<{ dragState: DragBaseState 
 	}
 }
 
-class HelpPopupView implements m.ClassComponent {
+class HelpDialogView implements m.ClassComponent {
 	view() {
 		return m(".help-dialog.dialog", [
 			m("h1", "Hotkeys"),
@@ -860,6 +989,10 @@ class HelpPopupView implements m.ClassComponent {
 						m("td", m("code", "P")),
 						m("td", "Go 5 years back"),
 					]),
+					m("tr", [
+						m("td", m("code", "1-4")),
+						m("td", "Switch mark colors"),
+					]),
 				]),
 			]),
 		])
@@ -873,8 +1006,9 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 
 	view(vnode: m.Vnode<{ model: Model }>) {
 		const { model } = vnode.attrs
+		const markCount = Object.keys(model.markedDates).length
+
 		return m(".dialog", [
-			m("h1", "Options"),
 			m("p", { style: { display: "flex", alignItems: "center" } }, [
 				m(MarkColorInput, {
 					value: model.currentColor,
@@ -906,6 +1040,19 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 				}),
 				m("span", " Show week numbers"),
 			])),
+			model.weekStartsOn !== "Monday" && model.weekNumbersEnabled &&
+				m("p.info", [
+					m(InfoIcon),
+					m("span", "Week numbers work best when weeks start on Mondays. "),
+					m("a", {
+						href: "#",
+						onclick(event: MouseEvent) {
+							event.preventDefault()
+							model.weekStartsOn = "Monday"
+						}
+					}, "Fix"),
+					".",
+				]),
 			m("p", m("label", [
 				m("input", {
 					type: "checkbox",
@@ -916,32 +1063,6 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 				}),
 				m("span", " Show surrounding dates"),
 			])),
-			m("button", {
-				onclick() {
-					if (confirm(`Are you sure? This will delete your ${Object.keys(model.markedDates).length} marks.`)) {
-						model.clearMarks()
-					}
-				},
-			}, "Delete all marks, across all years"),
-			m("button", {
-				class: "close-btn",
-				onclick() {
-					model.visibleDialog = null
-				},
-			}, m.trust("&times;")),
-		])
-	}
-}
-
-class PrintDialogView implements m.ClassComponent<{ model: Model }> {
-	oncreate(vnode: m.VnodeDOM<{ model: Model }>) {
-		autofocusUnder(vnode.dom)
-	}
-
-	view(vnode: m.Vnode<{ model: Model }>) {
-		const { model } = vnode.attrs
-		return m(".dialog", [
-			m("h1", "Print"),
 			m("p", m("label", [
 				m("span", "Layout: "),
 				m("select", {
@@ -962,12 +1083,27 @@ class PrintDialogView implements m.ClassComponent<{ model: Model }> {
 					m("option", { value: "6" }, "6 pages, 2 months in each"),
 					m("option", { value: "12" }, "12 pages, 1 month in each"),
 				]),
+				m("button", {
+					onclick() {
+						model.prepareAndPrint()
+					},
+				}, [
+					m(PrinterIcon),
+					m("span", "Print"),
+				]),
 			])),
-			m("p.center", m("button", {
+			markCount > 0 && m("p", m("button", {
 				onclick() {
-					model.prepareAndPrint()
+					copyText(model.generateLinkWithMarks())
 				},
-			}, "Print")),
+			}, `Copy permalink with ${markCount} marked date${markCount > 1 ? "s" : ""}`)),
+			markCount > 0 && m("p", m("button.danger", {
+				onclick() {
+					if (confirm(`Are you sure? This will delete your ${markCount} marks.`)) {
+						model.clearMarks()
+					}
+				},
+			}, "Delete all marks, across all years")),
 			m("button", {
 				class: "close-btn",
 				onclick() {
@@ -1016,12 +1152,82 @@ class MarkColorInput implements m.ClassComponent<{ value: string, onNewValue: (v
 	}
 }
 
+class StorageInfoView implements m.ClassComponent<{ model: Model }> {
+	isExpanded: boolean
+
+	constructor() {
+		this.isExpanded = false
+	}
+
+	view(vnode: m.Vnode<{ model: Model }>): m.Children {
+		const { model } = vnode.attrs
+
+		if (model.markStorage !== "queryParams") {
+			return
+		}
+
+		let localStorageUrl: string = ""
+		let localStorageMarkCount: number = 0
+		if (this.isExpanded) {
+			const url = new URL(location.toString())
+			url.search = ""
+			localStorageUrl = url.toString()
+			localStorageMarkCount = model.getLocalStorageMarkCount()
+		}
+
+		return m(".storage-info" + (this.isExpanded ? ".open" : ""), [
+			m(
+				"a.summary",
+				{
+					href: "",
+					onclick: (event: MouseEvent) => {
+						event.preventDefault()
+						this.isExpanded = !this.isExpanded
+					},
+				},
+				[
+					m("span", m.trust(this.isExpanded ? "&dtrif;" : "&rtrif;")),
+					m(InfoIcon),
+					m("span", "Marks stored in URL"),
+				],
+			),
+			this.isExpanded && [
+				m("p", "All marked dates are stored in the URL, which can be copied to share/save elsewhere."),
+				m("p", [
+					"Instead of the URL, marks can be saved to your local storage. ",
+					localStorageMarkCount > 0
+						? `You already have ${localStorageMarkCount} date${localStorageMarkCount > 1 ? "s" : ""} marked there.`
+						: "You don't have any dates marked in your local storage yet though.",
+						" ",
+						m("a", { href: localStorageUrl }, "Click here to switch to local storage"),
+						"."
+				]),
+			]
+		])
+	}
+}
+
+class ColorChangeOSDView implements m.ClassComponent<{ model: Model }> {
+	view (vnode: m.Vnode<{ model: Model }>): m.Children {
+		const { model } = vnode.attrs
+		return m(".color-change-osd", [
+			m(MarkColorInput, {
+				value: model.currentColor,
+				onNewValue(value: string) {
+					model.currentColor = value
+				},
+				includeClear: false,
+			}),
+		])
+	}
+}
+
 function autofocusUnder(parent: Element): void {
 	(parent.querySelector("input, select, textarea") as HTMLElement)?.focus()
 }
 
 function isWeekend(date: Date): boolean {
-	const day = resetTimeInDate(date).getUTCDay()
+	const day = date.getDay()
 	return day === 0 || day === 6
 }
 
@@ -1080,18 +1286,8 @@ function parseDate(dateStr: string): null | Date {
 }
 
 function formatDate(date: Date, format: string): string {
-	if (format === "ISO") {
-		format = "%Y-%m-%d"
-	}
-
 	return format.replace(/%(.)/g, (match: string, code: string): string => {
-		switch(code) {
-			case "a":
-				return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"][date.getDay()]
-			case "A":
-				return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"][date.getDay()]
-			case "w":
-				return date.getDay().toString()
+		switch (code) {
 			case "d":
 				return pad(date.getUTCDate(), 2)
 			case "m":
@@ -1114,7 +1310,7 @@ function computeWeekNumber(date: Date): number {
 		return computeWeekNumber(new Date(firstJan.getFullYear() + 1, 0, 1))
 	}
 
-	const dayCount = (resetTimeInDate(date).valueOf() - resetTimeInDate(firstJan).valueOf()) / (24 * 60 * 60 * 1000)
+	const dayCount = (normalizedValueOf(date) - normalizedValueOf(firstJan)) / (24 * 60 * 60 * 1000)
 	return (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
 }
 
@@ -1146,18 +1342,14 @@ function isDateBetween(date: Date, left: null | Date, right: null | Date): boole
 	if (left.valueOf() > right.valueOf()) {
 		[left, right] = [right, left]
 	}
-	left = resetTimeInDate(left)
-	right = resetTimeInDate(right)
-	date = resetTimeInDate(date)
-	return date.valueOf() >= left.valueOf() && date.valueOf() <= right.valueOf()
+	const leftValue = normalizedValueOf(left)
+	const rightValue = normalizedValueOf(right)
+	const dateValue = normalizedValueOf(date)
+	return dateValue >= leftValue && dateValue <= rightValue
 }
 
-function resetTimeInDate(date: Date): Date {
-	date = new Date(date)
-	date.setHours(12)
-	date.setMinutes(0)
-	date.setSeconds(0)
-	return date
+function normalizedValueOf(date: Date): number {
+	return new Date(date.getFullYear(), date.getMonth(), date.getDate()).valueOf()
 }
 
 function dateAddDays(d: Date, delta: number): Date {

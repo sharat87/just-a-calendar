@@ -66,21 +66,39 @@ input, select {
 
 button, .btn {
 	color: inherit;
-	background-image: linear-gradient(var(--bg-color), var(--bg-color-alt));
-	border: 1px solid rgba(0, 0, 0, .2);
+	background-image: linear-gradient(transparent, #0001);
+	background-color: transparent;
+	border: 1px solid #0002;
 	padding: 3px 12px;
 	border-radius: 2px;
 	min-width: 2em;
 	font: inherit;
 	cursor: pointer;
+	box-shadow: 0 1px 2px #0002;
+
+	&:hover {
+		border-color: #0004;
+		background-image: linear-gradient(#0001, #0002);
+
+		&.danger {
+			background-color: maroon;
+			color: #fff;
+		}
+	}
 }
 
-button:hover, .btn:hover {
-	border-color: rgba(0, 0, 0, .5);
+.info {
+	background-color: #0002;
+	padding: 6px;
+	border-radius: 3px;
 }
 
-#yearInput {
-	width: 5em;
+.year-input {
+	width: 5ch;
+	text-align: center;
+	appearance: textfield;
+	border-radius: 2px;
+	box-shadow: inset 0 0 2px #0006;
 }
 
 .calendar {
@@ -144,7 +162,7 @@ td.date {
 	z-index: 3;
 }
 
-.diff-month:not(.has-cmenu) {
+.diff-month {
 	opacity: .4;
 	visibility: hidden;
 }
@@ -241,15 +259,21 @@ td.vsep, td.hsep {
 	background-color: #0F9;
 }
 
+svg {
+	width: 1.3em;
+	height: 1.3em;
+	vertical-align: middle;
+}
+
 .color-selector {
 	display: flex;
 	align-items: center;
 
+	& > :first-child {
+		margin-right: 6px;
+	}
+
 	& svg {
-		display: inline-block;
-		width: 1.3em;
-		height: 1.3em;
-		vertical-align: middle;
 		cursor: pointer;
 	}
 
@@ -307,6 +331,10 @@ td.vsep, td.hsep {
 	max-height: calc(100vh - 6em);
 	overflow: auto;
 
+	& .info {
+		max-width: 360px;
+	}
+
 	@media (width <= 600px) {
 		left: 0;
 		right: 0;
@@ -323,8 +351,7 @@ td.vsep, td.hsep {
 footer {
 	text-align: center;
 	border-top: 1px solid var(--highlight1);
-	margin-top: 3em;
-	opacity: .8;
+	margin: 3em 0;
 	font-size: .9em;
 	display: flex;
 	flex-wrap: wrap;
@@ -361,10 +388,68 @@ footer p {
 	border-radius: 50%;
 	background: none;
 	border: none;
+
+	&:hover {
+		color: #f20;
+		background: none;
+	}
 }
 
-.close-btn:hover {
-	color: #f20;
+.storage-info {
+	position: fixed;
+	bottom: 6px;
+	right: 6px;
+	background-color: #07f;
+	color: #fff;
+	border-radius: 3px;
+	max-width: 400px;
+
+	&.open {
+		box-shadow: 0 0 96px #0005;
+	}
+
+	& a.summary {
+		padding: 3px 6px;
+		text-decoration: none;
+		display: flex;
+		place-items: center;
+
+		& :not(:first-child) {
+			margin-left: 6px;
+		}
+	}
+
+	& a {
+		color: inherit;
+	}
+
+	& p {
+		margin: 1em;
+	}
+
+	@media only print {
+		display: none;
+	}
+}
+
+.color-change-osd {
+	position: fixed;
+	top: 1em;
+	right: 1em;
+	background-color: var(--bg-color-alt);
+	padding: 1em;
+	border-radius: 6px;
+	box-shadow: 12px 12px 72px #0005;
+	animation: toast .2s;
+}
+
+@keyframes toast {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
 }
 
 @media only screen {
