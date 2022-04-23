@@ -1,8 +1,6 @@
-github:
-  - sharat87
+github: [sharat87]
 
-custom:
-  - "https://www.buymeacoffee.com/sharat87"
+custom: ["https://www.buymeacoffee.com/sharat87"]
 
 # patreon: # Replace with a single Patreon username
 # open_collective: # Replace with a single Open Collective username
