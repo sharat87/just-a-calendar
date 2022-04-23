@@ -12,6 +12,7 @@ Icon by [favicon.io](https://favicon.io).
 ## Features
 
 1. Simple, light, mostly greyscale.
+1. No signup/login. Yes, this is considered a feature.
 1. Go to any given date, and view it's Calendar.
 1. Mark dates, click to toggle, drag to mark/unmark multiple.
     1. Drag from one date to another, to get an estimate of the period between the dates. Hit Escape or right-click to cancel.
@@ -20,8 +21,15 @@ Icon by [favicon.io](https://favicon.io).
 1. Optional week numbers.
 1. Weeks start on Monday or Sunday, configurable.
 1. View consecutive Calendars together.
+1. Works completely offline, and has PWA support.
 1. Print beautiful no-nonsense Calendars, with customizable layouts.
+
+## Roadmap
+
+Not much. I consider this almost a _finished_ software, and don't currently intend to add large and complicated features. But if it's small QoL improvements, or bugs, or even new related tools, they will be taken up when I find some bandwidth.
+
+So, if you have any suggestions or bugs you faced, please [let me know](https://github.com/sharat87/just-a-calendar/issues/new/choose). Thanks!
 
 ## License
 
-[MIT License](https://github.com/sharat87/just-a-calendar/blob/master/LICENSE)
+[MIT License](https://github.com/sharat87/just-a-calendar/blob/master/LICENSE).

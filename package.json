@@ -6,13 +6,14 @@
 	"author": "Shrikant Sharat Kandula <shrikantsharat.k@gmail.com>",
 	"license": "MIT",
 	"private": false,
-	"source": "index.html",
+	"source": "src/index.html",
 	"browserslist": [
 		"since 2017-06"
 	],
 	"@parcel/transformer-css": {
 		"drafts": {
-			"nesting": true
+			"nesting": true,
+			"customMedia": true
 		}
 	},
 	"devDependencies": {

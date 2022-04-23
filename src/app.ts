@@ -1,4 +1,5 @@
 import m from "mithril"
+import ClockPageView from "./ClockPageView"
 
 const LANG = "en"
 
@@ -17,27 +18,31 @@ const MARK_COLORS = ["coral", "deeppink", "green", "purple"]
 window.addEventListener("load", main)
 
 function main() {
-	const root = document.createElement("div")
-	root.id = "root"
-	document.body.insertAdjacentElement("afterbegin", root)
-	m.mount(root, RootView)
-
-	window.matchMedia("(prefers-color-scheme: dark)").addListener(updateDarkMode)
-	updateDarkMode()
+	m.route.prefix = ""
+	m.route(document.body, "/", {
+		"/": {
+			render() {
+				return m(".page-calendar", m(CalendarPageView))
+			},
+		},
+		"/clock": {
+			render() {
+				return m(".page-clock", m(ClockPageView))
+			},
+		},
+	})
 
 	// Register a service-worker to support PWA installations.
-	navigator.serviceWorker.register(
-		new URL("./sw.js", import.meta.url),
-		{ type: "module" },
-	)
-}
-
-function updateDarkMode() {
-	if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-		document.body.parentElement?.classList.add("dark")
-	} else {
-		document.body.parentElement?.classList.remove("dark")
+	if (navigator.serviceWorker) {
+		navigator.serviceWorker.register(
+			new URL("./sw.js", import.meta.url),
+			{ type: "module" },
+		)
 	}
+
+	// Online/offline detection.
+	window.addEventListener("online", m.redraw)
+	window.addEventListener("offline", m.redraw)
 }
 
 class Model {
@@ -252,6 +257,16 @@ class Model {
 
 	}
 
+	exportMarksToText() {
+		const lines: string[] = []
+
+		for (const dateStr of Object.keys(this.markedDates)) {
+			lines.push(dateStr.replace(/^(\d\d\d\d)(\d\d)(\d\d)$/, "$1-$2-$3"))
+		}
+
+		return lines.join("\n")
+	}
+
 	prepareAndPrint() {
 		const styleEl = document.createElement("style")
 		document.body.appendChild(styleEl)
@@ -345,7 +360,7 @@ class DragWeekState extends DragBaseState {
 	}
 }
 
-class RootView {
+class CalendarPageView {
 	model: Model
 	touchStartedAt: null | {
 		time: number
@@ -657,7 +672,7 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 class Icon implements m.ClassComponent<any> {
 	view(vnode: m.Vnode<any>) {
 		return m(
-			"svg",
+			"svg.i",
 			{
 				version: "1.1",
 				width: "1em",
@@ -845,14 +860,17 @@ class FooterView implements m.ClassComponent {
 	view() {
 		return m("footer.screen", [
 			m("p", [
-				"Made out of pure need and frustration. Hit ",
+				"Hit ",
  				m("kbd", "?"),
-				" for help.",
+				" for help. ",
+				!navigator.onLine && "Working offline. ",
+				m("a", { href: "https://www.buymeacoffee.com/sharat87" }, "Support Just A Calendar ❤️"),
+				".",
 			]),
 			m("p", [
 				m.trust("&copy; 2018&ndash;2022 &mdash; "),
 				m("a", { href: "https://sharats.me", target: "_blank" }, "Shri"),
-				". Source code on ",
+				". Source on ",
 				m("a", { href: "https://github.com/sharat87/just-a-calendar", target: "_blank" }, "GitHub"),
 				".",
 			]),
@@ -1063,6 +1081,37 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 				}),
 				m("span", " Show surrounding dates"),
 			])),
+			markCount > 0 && [
+				m("hr"),
+				m("p", m("button.danger", {
+					onclick() {
+						if (confirm(`Are you sure? This will delete your ${markCount} marks.`)) {
+							model.clearMarks()
+						}
+					},
+				}, "Delete all marks, across all years")),
+				m("hr"),
+				m("h3", `Export ${markCount} mark${markCount > 1 ? "s" : ""}`),
+				m("p", [
+					m("button", {
+						onclick() {
+							copyText(model.exportMarksToText())
+						},
+					}, "Copy dates list"),
+					m("button", {
+						onclick() {
+							downloadText(model.exportMarksToText() + "\n")
+						},
+					}, "Download"),
+					m("button", {
+						onclick() {
+							copyText(model.generateLinkWithMarks())
+						},
+					}, "Copy permalink")
+				]),
+			],
+			m("hr"),
+			m("h3", m.trust("Print <sup>&beta;</sup>")),
 			m("p", m("label", [
 				m("span", "Layout: "),
 				m("select", {
@@ -1092,18 +1141,6 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 					m("span", "Print"),
 				]),
 			])),
-			markCount > 0 && m("p", m("button", {
-				onclick() {
-					copyText(model.generateLinkWithMarks())
-				},
-			}, `Copy permalink with ${markCount} marked date${markCount > 1 ? "s" : ""}`)),
-			markCount > 0 && m("p", m("button.danger", {
-				onclick() {
-					if (confirm(`Are you sure? This will delete your ${markCount} marks.`)) {
-						model.clearMarks()
-					}
-				},
-			}, "Delete all marks, across all years")),
 			m("button", {
 				class: "close-btn",
 				onclick() {
@@ -1367,6 +1404,16 @@ function copyText(text: string): void {
 	el.value = text
 	el.select()
 	document.execCommand("copy")
+	el.remove()
+}
+
+export function downloadText(text: string, filename = "dates.txt"): void {
+	const el = document.createElement("a")
+	el.style.display = "none"
+	el.setAttribute("download", filename)
+	el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text))
+	document.body.append(el)
+	el.click()
 	el.remove()
 }
 

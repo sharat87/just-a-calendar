@@ -12,3 +12,10 @@ serve:
 build:
 	yarn install --frozen-lockfile
 	npx parcel build --no-autoinstall --no-source-maps --no-cache --detailed-report 9
+
+chrome-with-tz:
+	rm -rf tmp-chrome-profile
+	TZ="$${TZ:-America/New_York}" open -na "Google Chrome" --args "--user-data-dir=$$PWD/tmp-chrome-profile"
+
+
+.PHONY: serve build chrome-with-tz
