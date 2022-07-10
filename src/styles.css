@@ -462,6 +462,18 @@ footer p {
 	animation: toast .2s;
 }
 
+.osd {
+	font-size: 1.2em;
+	color: #fff;
+	background-color: #222E;
+	padding: .5em 1em;
+	border-radius: 6px;
+	position: fixed;
+	top: 30%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
 @keyframes toast {
 	from {
 		transform: translateX(100%);

@@ -37,7 +37,9 @@ function main() {
 		navigator.serviceWorker.register(
 			new URL("./sw.js", import.meta.url),
 			{ type: "module" },
-		)
+		).catch(err => {
+			console.error("Error registering service worker", err)
+		})
 	}
 
 	// Online/offline detection.
@@ -193,7 +195,7 @@ class Model {
 			for (const part of parts) {
 				const instruction = part.charAt(0)
 				if (instruction === "c") {
-					currentColor = part.substr(1)
+					currentColor = part.substring(1)
 				} else if (part.match(/^\d{8}$/)) {
 					this.markedDates[part] = currentColor
 				} else {
@@ -282,7 +284,7 @@ abstract class DragBaseState {
 		y: number
 	}
 
-	constructor() {
+	protected constructor() {
 		this.isUnmarking = false
 		this.pos = { x: 0, y: 0 }
 	}
@@ -304,18 +306,11 @@ class DragDateState extends DragBaseState {
 		if (this.start == null || this.end == null) {
 			return new Set()
 		}
+
 		const [lowerDate, higherDate] = normalizedValueOf(this.start) < normalizedValueOf(this.end)
 			? [this.start, this.end] : [this.end, this.start]
-		const d = new Date(lowerDate)
 
-		const dateSet: Set<string> = new Set()
-		while (!isSameDate(d, higherDate)) {
-			dateSet.add(dateToBasicIso(d))
-			d.setDate(d.getDate() + 1)
-		}
-
-		dateSet.add(dateToBasicIso(higherDate))
-		return dateSet
+		return computeDateSet(lowerDate, higherDate)
 	}
 }
 
@@ -347,20 +342,24 @@ class DragWeekState extends DragBaseState {
 			higherDate = dateAddDays(this.start, 6)
 		}
 
-		const d = new Date(lowerDate)
-
-		const dateSet: Set<string> = new Set()
-		while (!isSameDate(d, higherDate)) {
-			dateSet.add(dateToBasicIso(d))
-			d.setDate(d.getDate() + 1)
-		}
-
-		dateSet.add(dateToBasicIso(higherDate))
-		return dateSet
+		return computeDateSet(lowerDate, higherDate)
 	}
 }
 
-class CalendarPageView {
+function computeDateSet(lowerDate: Date, higherDate: Date) {
+	const d = new Date(lowerDate)
+
+	const dateSet: Set<string> = new Set()
+	while (!isSameDate(d, higherDate)) {
+		dateSet.add(dateToBasicIso(d))
+		d.setDate(d.getDate() + 1)
+	}
+
+	dateSet.add(dateToBasicIso(higherDate))
+	return dateSet
+}
+
+class CalendarPageView implements m.ClassComponent {
 	model: Model
 	touchStartedAt: null | {
 		time: number
@@ -378,15 +377,15 @@ class CalendarPageView {
 		this.hotkeyHandler = this.hotkeyHandler.bind(this)
 	}
 
-	oncreate() {
+	oncreate(): void {
 		document.body.addEventListener("keydown", this.hotkeyHandler)
 	}
 
-	onremove() {
+	onremove(): void {
 		document.body.removeEventListener("keydown", this.hotkeyHandler)
 	}
 
-	view() {
+	view(): m.Children {
 		return m(
 			"div",
 			{
@@ -447,7 +446,7 @@ class CalendarPageView {
 
 		if (el.dataset.date && (d = parseDate(el.dataset.date)) != null) {
 			this.model.dragState = new DragDateState(d, d)
-			this.model.dragState.isUnmarking = this.model.markedDates[dateToBasicIso(d)] === this.model.currentColor,
+			this.model.dragState.isUnmarking = this.model.markedDates[dateToBasicIso(d)] === this.model.currentColor
 			this.model.dragState.pos = {
 				x: event.clientX,
 				y: event.clientY,
@@ -507,7 +506,6 @@ class CalendarPageView {
 		if (this.model.dragState == null) {
 			return
 		}
-		const el = event.target as HTMLElement
 		for (const d of this.model.dragState.computeDateSet()) {
 			if (this.model.dragState.isUnmarking) {
 				this.model.unsetMark(d)
@@ -661,7 +659,7 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 					display: "flex",
 					alignItems: "center",
 				},
-				onclick(event: MouseEvent) {
+				onclick() {
 					model.visibleDialog = model.visibleDialog === "options" ? null : "options"
 				},
 			}, m(BurgerIcon)),
@@ -789,9 +787,8 @@ class AdditionalCalendarsView implements m.ClassComponent<{ model: Model }> {
 // Renders a single month.
 class MonthTableView implements m.ClassComponent<{ year: number, model: Model, month: number }> {
 	view(vnode: m.Vnode<{ year: number, model: Model, month: number }>) {
-		const { markedDates, currentColor, contextMenu } = vnode.attrs.model
+		const { markedDates, contextMenu } = vnode.attrs.model
 		const { year, model, month } = vnode.attrs
-		const weekendDays = [0, 6]
 
 		const weekdayNamesInOrder = [
 			...WEEKDAYS.slice(WEEKDAYS.indexOf(model.weekStartsOn)),
@@ -923,6 +920,7 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 				onclick(event: MouseEvent) {
 					event.preventDefault()
 					copyText(ds)
+						.then(() => showOSD(`Copied "${ds}" to clipboard`))
 					model.contextMenu = null
 				},
 			}, "Copy " + ds)),
@@ -1096,6 +1094,10 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 					m("button", {
 						onclick() {
 							copyText(model.exportMarksToText())
+								.then(() => {
+									const count = Object.keys(model.markedDates).length
+									showOSD(`Copied ${count} date${count > 1 ? "s" : ""} to clipboard`)
+								})
 						},
 					}, "Copy dates list"),
 					m("button", {
@@ -1106,6 +1108,7 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 					m("button", {
 						onclick() {
 							copyText(model.generateLinkWithMarks())
+								.then(() => showOSD("Copied link to clipboard"))
 						},
 					}, "Copy permalink")
 				]),
@@ -1372,19 +1375,6 @@ function computeMessagesForDayCount(days: number): { weeks: null | string } {
 	}
 }
 
-function isDateBetween(date: Date, left: null | Date, right: null | Date): boolean {
-	if (left == null || right == null) {
-		return false
-	}
-	if (left.valueOf() > right.valueOf()) {
-		[left, right] = [right, left]
-	}
-	const leftValue = normalizedValueOf(left)
-	const rightValue = normalizedValueOf(right)
-	const dateValue = normalizedValueOf(date)
-	return dateValue >= leftValue && dateValue <= rightValue
-}
-
 function normalizedValueOf(date: Date): number {
 	return new Date(date.getFullYear(), date.getMonth(), date.getDate()).valueOf()
 }
@@ -1395,16 +1385,17 @@ function dateAddDays(d: Date, delta: number): Date {
 	return d2
 }
 
-function copyText(text: string): void {
-	const el = document.createElement("textarea")
-	el.style.position = "fixed"
-	el.style.opacity = el.style.top = el.style.left = "0"
-	el.style.pointerEvents = "none"
-	document.body.append(el)
-	el.value = text
-	el.select()
-	document.execCommand("copy")
-	el.remove()
+function copyText(text: string): Promise<void> {
+	return navigator.clipboard.writeText(text)
+		.catch((reason) => alert("Error copying text: " + reason))
+}
+
+function showOSD(content: string) {
+	const osd = document.createElement("div")
+	osd.className = "osd"
+	osd.innerText = content
+	document.body.append(osd)
+	setTimeout(() => osd.remove(), 3000)
 }
 
 export function downloadText(text: string, filename = "dates.txt"): void {

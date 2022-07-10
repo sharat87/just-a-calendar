@@ -18,6 +18,7 @@ addEventListener("fetch", (event) => {
 			const response = await fetch(event.request)
 			const cache = await caches.open(CACHE_NAME)
 			cache.put(event.request, response.clone())
+				.catch((reason) => console.error("Error caching response", reason))
 			return response
 		} catch (error) {
 			const cacheResponse = await caches.match(event.request)

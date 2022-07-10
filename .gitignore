@@ -5,4 +5,7 @@
 /*.pem
 /tmp-chrome-profile
 
+/.idea
+*.iml
+
 .DS_Store
