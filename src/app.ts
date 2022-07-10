@@ -1291,7 +1291,7 @@ function ordinalSuffix(n: number): string {
 	// This only works for numbers under 100, which is all we need.
 	const lastDigit = n % 10
 
-	if (n != 11 && n != 12 && n != 13 && lastDigit < 4) {
+	if (n != 11 && n != 12 && n != 13 && lastDigit > 0 && lastDigit < 4) {
 		return ["st", "nd", "rd"][lastDigit - 1]
 	}
 
