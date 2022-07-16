@@ -1,5 +1,6 @@
 import m from "mithril"
-import ClockPageView from "./ClockPageView"
+import ClockPageView from "./scripts/ClockPageView"
+import * as migrate from "./scripts/migrate"
 
 const LANG = "en"
 
@@ -18,6 +19,10 @@ const MARK_COLORS = ["coral", "deeppink", "green", "purple"]
 window.addEventListener("load", main)
 
 function main() {
+	if (migrate.needsMigrate()) {
+		return
+	}
+
 	m.route.prefix = ""
 	m.route(document.body, "/", {
 		"/": {
@@ -603,8 +608,8 @@ class CalendarPageView implements m.ClassComponent {
 
 }
 
-class TitleView implements m.ClassComponent {
-	view() {
+class TitleView implements m.ClassComponent<never> {
+	view(_: m.Vnode<never, never>): m.Children {
 		return [
 			m("h1.screen", "Just a Calendar."),
 			m("p.center.screen", ["🎉 ", m.trust(dateToHumanReadable(new Date())), "."]),
@@ -736,7 +741,7 @@ class InfoIcon implements m.ClassComponent {
 }
 
 class CalendarView implements m.ClassComponent<{ year: number, model: Model }> {
-	view(vnode: m.Vnode<{ year: number, model: Model }>) {
+	view(vnode: m.Vnode<{ year: number, model: Model }>): m.Children {
 		const { year, model } = vnode.attrs
 		const children = []
 
@@ -765,7 +770,7 @@ class CalendarView implements m.ClassComponent<{ year: number, model: Model }> {
 }
 
 class AdditionalCalendarsView implements m.ClassComponent<{ model: Model }> {
-	view(vnode: m.Vnode<{ model: Model }>) {
+	view(vnode: m.Vnode<{ model: Model }>): m.Children {
 		const { currentYear, additionalCalendarCount } = vnode.attrs.model
 		const calendarViews = []
 
@@ -826,7 +831,7 @@ class MonthTableView implements m.ClassComponent<{ year: number, model: Model, m
 						isWeekend(date) ? "weekend" : "",
 						isSameDate(date, today) ? "today" : "",
 						(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState)
-							&& isSameDate(date, model.dragState?.start)
+							&& isSameDate(date, model.dragState.start)
 							&& dragDates.size > 1
 								? "drag-start" : "",
 						dragDates.has(dateStr)
@@ -938,10 +943,6 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 class DragDatePeriodView implements m.ClassComponent<{ dragState: DragBaseState }> {
 	view(vnode: m.Vnode<{ dragState: DragBaseState }>): m.Children {
 		const { dragState } = vnode.attrs
-
-		if (dragState == null) {
-			return null
-		}
 
 		const dayCount = dragState.computeDateSet().size
 		if (dayCount < 2) {

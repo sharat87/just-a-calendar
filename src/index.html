@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang=en>
+<head>
 <meta charset=utf-8>
 <title>Just a Calendar.</title>
 <meta name=viewport content="width=device-width">
@@ -14,9 +15,13 @@
 <link rel=icon type="image/png" sizes=16x16 href="icons/favicon-16.png">
 <link rel=stylesheet href="https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap">
 <style>@import "styles.css"</style>
+</head>
 <body>
-<noscript><p>This website needs Javascript to run. This is a serverless static web application, that
+<noscript><p style="margin: 0; padding-top: 3em; max-width: 700px">
+	This website needs Javascript to run. This is a serverless static web application, that
 	does <strong>not</strong> require a login or any other shenanigans. A calendar is generated right inside
-	your browser, and you get to look at it. That is all the point of this app.</p></noscript>
+	your browser, and you get to look at it. That is all the point of this app.
+</p></noscript>
 <script type=module>import "./app.ts"</script>
-</body></html>
+</body>
+</html>
