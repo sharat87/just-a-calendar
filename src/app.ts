@@ -892,6 +892,7 @@ class ContextMenuView implements m.ClassComponent<{ model: Model }> {
 		const dateStrings = [
 			formatDate(date, "%Y-%m-%d"),
 			formatDate(date, "%m/%d/%Y"),
+			formatDate(date, "%d-%M-%Y"),
 		]
 
 		const localFormat = date.toLocaleDateString()
@@ -1333,6 +1334,8 @@ function formatDate(date: Date, format: string): string {
 				return pad(date.getUTCDate(), 2)
 			case "m":
 				return pad(date.getUTCMonth() + 1, 2)
+			case "M":
+				return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.getUTCMonth()]
 			case "Y":
 				return pad(date.getUTCFullYear(), 4)
 		}
