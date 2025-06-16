@@ -1,6 +1,5 @@
 import m from "mithril"
 import ClockPageView from "./scripts/ClockPageView"
-import * as migrate from "./scripts/migrate"
 
 const LANG = "en"
 
@@ -19,10 +18,6 @@ const MARK_COLORS = ["coral", "deeppink", "green", "purple"]
 window.addEventListener("load", main)
 
 function main() {
-	if (migrate.needsMigrate()) {
-		return
-	}
-
 	m.route.prefix = ""
 	m.route(document.body, "/", {
 		"/": {
