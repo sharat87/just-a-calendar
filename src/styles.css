@@ -26,7 +26,7 @@
 }
 
 * {
-	scrollbar-color: currentColor transparent;
+	scrollbar-color: #888 transparent;
 	scrollbar-width: thin;
 }
 
@@ -57,12 +57,6 @@ html {
 
 body {
 	margin: 0;
-	min-height: 100vh;
-}
-
-.page-calendar {
-	margin: 0 auto;
-	max-width: 1100px;
 }
 
 h1 {
@@ -84,11 +78,6 @@ h3 {
 	& + p {
 		margin-top: 3px;
 	}
-}
-
-code {
-	font-family: Consolas, Menlo, 'Roboto Mono', monospace;
-	font-size: inherit;
 }
 
 a {

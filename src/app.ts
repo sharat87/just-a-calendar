@@ -551,8 +551,12 @@ const CalendarPageView: m.Component = (() => {
 		oncreate: () => { document.body.addEventListener("keydown", hotkeyHandler) },
 		onremove: () => { document.body.removeEventListener("keydown", hotkeyHandler) },
 		view: (): m.Children => {
-			return m("div.page-calendar", {
+			return m("div", {
 				class: model.ghostDatesEnabled ? "ghosts" : undefined,
+				style: {
+					margin: "0 auto",
+					maxWidth: "1100px",
+				},
 				onmousedown: onMouseDown,
 				...(model.dragState == null ? {} : { onmousemove: onMouseMove, onmouseup: onMouseUp }),
 				oncontextmenu: onContextMenu,
