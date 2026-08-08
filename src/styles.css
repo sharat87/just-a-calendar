@@ -223,39 +223,6 @@ td.date.drag-start {
 	z-index: 4;
 }
 
-td.vsep, td.hsep {
-	border: none;
-}
-
-.bubble {
-	display: inline-block;
-	width: 6px;
-	height: 6px;
-	border-radius: 3px;
-	background-color: gray;
-	position: absolute;
-	left: 3px;
-}
-
-.bubble.fixed-holiday {
-	background-color: red;
-}
-
-.bubble.optional-holiday {
-	background-color: #F90;
-}
-
-.settings {
-	margin: 1em;
-	padding: 3px;
-	display: flex;
-	justify-content: center;
-}
-
-.settings > * {
-	margin: 0 .5em;
-}
-
 .popup {
 	background-color: var(--bg-color-alt);
 	display: none;
@@ -263,18 +230,6 @@ td.vsep, td.hsep {
 
 .popup.show {
 	display: block;
-}
-
-.date-list {
-	background-color: transparent;
-	color: inherit;
-	font: inherit;
-	border: none;
-	padding: 6px;
-}
-
-.date-list:focus {
-	outline: none;
 }
 
 svg.i {

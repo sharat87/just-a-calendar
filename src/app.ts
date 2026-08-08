@@ -167,8 +167,9 @@ class Model {
 		} else if (this.markStorage === "queryParams") {
 			const urlDs = new URL(location.toString()).searchParams.get("d")
 			if (urlDs == null) {
-				console.error("Attempt to load marks from query params, when not available.")
-				// Switch to `localStorage` here?
+				// URL had ?d= at some point but it's gone now — fall back to localStorage.
+				this.markStorage = "localStorage"
+				this.markedDates = this.loadLocalStorageMarks()
 				return
 			}
 
@@ -176,6 +177,7 @@ class Model {
 			const parts: string[] = urlDs.split(",")
 
 			let currentColor = MARK_COLORS[0]
+			const errors: string[] = []
 
 			for (const part of parts) {
 				const instruction = part.charAt(0)
@@ -183,9 +185,13 @@ class Model {
 					currentColor = part.substring(1)
 				} else if (part.match(/^\d{8}$/)) {
 					this.markedDates[part] = currentColor
-				} else {
-					console.error(`Couldn't parse date '${part}'. Should be in the format 'YYYYMMDD' only.`)
+				} else if (part !== "") {
+					errors.push(part)
 				}
+			}
+
+			if (errors.length > 0) {
+				showOSD(`Could not parse ${errors.length} date${errors.length > 1 ? "s" : ""} from URL: ${errors.join(", ")}`)
 			}
 
 		}
@@ -1033,7 +1039,7 @@ function computeWeekNumber(date: Date): number {
 	}
 
 	const dayCount = (normalizedValueOf(date) - normalizedValueOf(firstJan)) / (24 * 60 * 60 * 1000)
-	const weekNum = (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
+	const weekNum = (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.floor(dayCount / 7)
 
 	if (weekNum === 0) {
 		// Early January days that actually belong to the last week of the previous year. Dec 28th
