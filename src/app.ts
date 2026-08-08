@@ -596,6 +596,7 @@ function TopToolbarView(model: Model) {
 			m("button", { onclick() { model.goToYear("-5") } }, m.trust("&minus;5")),
 			m("button", { onclick() { model.goToYear("-1") } }, m.trust("&minus;1")),
 			m("input.year-input", {
+				id: "year-input",
 				type: "number",
 				value: model.currentYear,
 				onchange(event: InputEvent) {
@@ -837,6 +838,7 @@ function OptionsDialogView(model: Model) {
 				m("p", m("label", [
 					m("span", "Week starts on "),
 					m("select", {
+						id: "week-starts-on",
 						value: model.weekStartsOn,
 						onchange(event: Event) {
 							model.weekStartsOn = (event.target as HTMLSelectElement).value === "Monday" ? "Monday" : "Sunday"
@@ -848,6 +850,7 @@ function OptionsDialogView(model: Model) {
 				])),
 				m("p", m("label", [
 					m("input", {
+						id: "week-numbers-enabled",
 						type: "checkbox",
 						checked: model.weekNumbersEnabled,
 						onchange(event: Event) {
@@ -865,6 +868,7 @@ function OptionsDialogView(model: Model) {
 					]),
 				m("p", m("label", [
 					m("input", {
+						id: "ghost-dates-enabled",
 						type: "checkbox",
 						checked: model.ghostDatesEnabled,
 						onchange(event: Event) {
@@ -914,13 +918,18 @@ function OptionsDialogView(model: Model) {
 	}
 }
 
+let markColorInputCount = 0
+
 function MarkColorInput(value: string, onNewValue: (value: string) => void, includeClear: boolean) {
+	const name = `mark-color-${++markColorInputCount}`
+
 	return {
 		view: () => m("span.color-selector", [
 			m("span", "Mark color: "),
 			includeClear && m("label", { title: "Clear" }, [
 				m("input", {
 					type: "radio",
+					name,
 					value: "",
 					checked: value === "",
 					onchange() { onNewValue("") },
@@ -930,6 +939,7 @@ function MarkColorInput(value: string, onNewValue: (value: string) => void, incl
 			MARK_COLORS.map((color) => m("label", [
 				m("input", {
 					type: "radio",
+					name,
 					value: color,
 					checked: value === color,
 					onchange() { onNewValue(color) },
