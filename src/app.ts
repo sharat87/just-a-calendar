@@ -386,6 +386,12 @@ function colorIcon(color: string, selected: boolean): m.Children {
 }
 
 // ---- Components ----
+//
+// Components below take their inputs as attrs, i.e. `m(SomeView, { model })`, and must stay as
+// stable module-level values. Building one per render instead, as in `m(SomeView(model))`, hands
+// Mithril a new component type every redraw, so it tears down and recreates the whole page's DOM.
+// Since the root's `onmousedown` triggers a redraw, that removed the element under the cursor
+// between mousedown and mouseup — and the browser then never fired a `click` at all.
 
 const CalendarPageView: m.Component = (() => {
 	const model = new Model()
@@ -568,16 +574,16 @@ const CalendarPageView: m.Component = (() => {
 				},
 			}, [
 				m(TitleView),
-				m(TopToolbarView(model)),
-				m(CalendarView(model.currentYear, model)),
-				m(AdditionalCalendarsView(model)),
+				m(TopToolbarView, { model }),
+				m(CalendarView, { year: model.currentYear, model }),
+				m(AdditionalCalendarsView, { model }),
 				m(FooterView),
-				m(ContextMenuView(model)),
-				model.dragState != null && m(DragDatePeriodView(model.dragState)),
-				model.visibleDialog === "options" && m(OptionsDialogView(model)),
+				m(ContextMenuView, { model }),
+				model.dragState != null && m(DragDatePeriodView, { dragState: model.dragState }),
+				model.visibleDialog === "options" && m(OptionsDialogView, { model }),
 				model.isHelpVisible && m(HelpDialogView),
 				m(storageInfoView),
-				Date.now() - model.colorChangedByHotkeyAt < 3000 && m(ColorChangeOSDView(model)),
+				Date.now() - model.colorChangedByHotkeyAt < 3000 && m(ColorChangeOSDView, { model }),
 			])
 		},
 	}
@@ -590,9 +596,9 @@ const TitleView = {
 	],
 }
 
-function TopToolbarView(model: Model) {
+const TopToolbarView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
-		view: () => m("p.controls", [
+		view: ({ attrs: { model } }) => m("p.controls", [
 			m("button", { onclick() { model.goToYear("-5") } }, m.trust("&minus;5")),
 			m("button", { onclick() { model.goToYear("-1") } }, m.trust("&minus;1")),
 			m("input.year-input", {
@@ -616,25 +622,25 @@ function TopToolbarView(model: Model) {
 	}
 }
 
-function CalendarView(year: number, model: Model) {
+const CalendarView: m.ClosureComponent<{ year: number, model: Model }> = () => {
 	return {
-		view: (): m.Children => {
+		view: ({ attrs: { year, model } }): m.Children => {
 			const children = []
 			for (let i = 0; i < 12; ++i) {
-				children.push(m(MonthTableView(year, i, model)))
+				children.push(m(MonthTableView, { year, month: i, model }))
 			}
 			return [m("h2", ["Year ", year]), m(".calendar", children)]
 		},
 	}
 }
 
-function AdditionalCalendarsView(model: Model) {
+const AdditionalCalendarsView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
-		view: (): m.Children => {
+		view: ({ attrs: { model } }): m.Children => {
 			const { currentYear, additionalCalendarCount } = model
 			const calendarViews = []
 			for (let i = 0; i < additionalCalendarCount; ++i) {
-				calendarViews.push(m("hr"), m(CalendarView(currentYear + i + 1, model)))
+				calendarViews.push(m("hr"), m(CalendarView, { year: currentYear + i + 1, model }))
 			}
 			return [
 				calendarViews,
@@ -647,9 +653,9 @@ function AdditionalCalendarsView(model: Model) {
 }
 
 // Renders a single month.
-function MonthTableView(year: number, month: number, model: Model) {
+const MonthTableView: m.ClosureComponent<{ year: number, month: number, model: Model }> = () => {
 	return {
-		view: (): m.Children => {
+		view: ({ attrs: { year, month, model } }): m.Children => {
 			const { markedDates, contextMenu } = model
 
 			const weekdayNamesInOrder = [
@@ -730,9 +736,9 @@ const FooterView = {
 	]),
 }
 
-function ContextMenuView(model: Model) {
+const ContextMenuView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
-		view: (): m.Children => {
+		view: ({ attrs: { model } }): m.Children => {
 			if (model.contextMenu == null) return null
 
 			const date = model.contextMenu.date
@@ -752,9 +758,9 @@ function ContextMenuView(model: Model) {
 					left: model.contextMenu.left + "px",
 				},
 			},
-				m(MarkColorInput(
-					model.markedDates[dateToBasicIso(date)] ?? "",
-					(value: string) => {
+				m(MarkColorInput, {
+					value: model.markedDates[dateToBasicIso(date)] ?? "",
+					onNewValue: (value: string) => {
 						if (value === "") {
 							delete model.markedDates[dateToBasicIso(date)]
 						} else {
@@ -763,8 +769,8 @@ function ContextMenuView(model: Model) {
 						model.saveMarks()
 						model.contextMenu = null
 					},
-					true,
-				)),
+					includeClear: true,
+				}),
 				dateStrings.map((ds: string) => m("a", {
 					href: "#",
 					onclick(event: MouseEvent) {
@@ -785,9 +791,9 @@ function ContextMenuView(model: Model) {
 	}
 }
 
-function DragDatePeriodView(dragState: DragBaseState) {
+const DragDatePeriodView: m.ClosureComponent<{ dragState: DragBaseState }> = () => {
 	return {
-		view: (): m.Children => {
+		view: ({ attrs: { dragState } }): m.Children => {
 			const dayCount = dragState.computeDateSet().size
 			if (dayCount < 2) return null
 
@@ -825,15 +831,19 @@ const HelpDialogView = {
 	]),
 }
 
-function OptionsDialogView(model: Model) {
+const OptionsDialogView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
 		oncreate: (vnode: m.VnodeDOM) => { autofocusUnder(vnode.dom as Element) },
-		view: (): m.Children => {
+		view: ({ attrs: { model } }): m.Children => {
 			const markCount = Object.keys(model.markedDates).length
 
 			return m(".dialog", [
 				m("p", { style: { display: "flex", alignItems: "center" } }, [
-					m(MarkColorInput(model.currentColor, (value) => { model.currentColor = value }, false)),
+					m(MarkColorInput, {
+						value: model.currentColor,
+						onNewValue: (value: string) => { model.currentColor = value },
+						includeClear: false,
+					}),
 				]),
 				m("p", m("label", [
 					m("span", "Week starts on "),
@@ -920,11 +930,17 @@ function OptionsDialogView(model: Model) {
 
 let markColorInputCount = 0
 
-function MarkColorInput(value: string, onNewValue: (value: string) => void, includeClear: boolean) {
+type MarkColorInputAttrs = {
+	value: string
+	onNewValue: (value: string) => void
+	includeClear: boolean
+}
+
+const MarkColorInput: m.ClosureComponent<MarkColorInputAttrs> = () => {
 	const name = `mark-color-${++markColorInputCount}`
 
 	return {
-		view: () => m("span.color-selector", [
+		view: ({ attrs: { value, onNewValue, includeClear } }) => m("span.color-selector", [
 			m("span", "Mark color: "),
 			includeClear && m("label", { title: "Clear" }, [
 				m("input", {
@@ -950,10 +966,14 @@ function MarkColorInput(value: string, onNewValue: (value: string) => void, incl
 	}
 }
 
-function ColorChangeOSDView(model: Model) {
+const ColorChangeOSDView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
-		view: (): m.Children => m(".color-change-osd", [
-			m(MarkColorInput(model.currentColor, (value: string) => { model.currentColor = value }, false)),
+		view: ({ attrs: { model } }): m.Children => m(".color-change-osd", [
+			m(MarkColorInput, {
+				value: model.currentColor,
+				onNewValue: (value: string) => { model.currentColor = value },
+				includeClear: false,
+			}),
 		]),
 	}
 }
