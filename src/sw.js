@@ -1,5 +1,5 @@
 // Offline support.
-const CACHE_VERSION = "v4"
+const CACHE_VERSION = "v5"
 const CACHE_NAME = `just-a-calendar-${CACHE_VERSION}`
 
 const PRE_CACHE_URLS = [
@@ -8,6 +8,10 @@ const PRE_CACHE_URLS = [
 	"/styles.css",
 	"/manifest.json",
 	"/app.js",
+	// Self-hosted, so unlike the old Google Fonts link these can actually be pre-cached — the
+	// fetch handler below deliberately ignores cross-origin requests.
+	"/fonts/nunito-latin-400.woff2",
+	"/fonts/nunito-latin-700.woff2",
 	"/icons/favicon.ico",
 	"/icons/favicon-16.png",
 	"/icons/favicon-32.png",

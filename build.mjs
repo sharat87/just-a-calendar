@@ -14,6 +14,7 @@ const outdir = "dist"
 
 async function copyStatic() {
 	await fsp.cp("src/icons", path.join(outdir, "icons"), { recursive: true })
+	await fsp.cp("src/fonts", path.join(outdir, "fonts"), { recursive: true })
 	await fsp.copyFile("src/styles.css", path.join(outdir, "styles.css"))
 	await fsp.copyFile("src/manifest.json", path.join(outdir, "manifest.json"))
 	await fsp.copyFile("src/index.html", path.join(outdir, "index.html"))

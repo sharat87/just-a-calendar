@@ -1,0 +1,19 @@
+These are self-hosted copies of the Nunito webfont, so that the app doesn't depend on
+Google Fonts and genuinely works offline.
+
+- Font Title: Nunito
+- Font Author: Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+- Font Source: https://fonts.google.com/specimen/Nunito
+- Font License: SIL Open Font License 1.1 (see OFL.txt alongside this file)
+
+The two .woff2 files are Google Fonts' `latin` subset of the regular (400) and bold (700)
+weights, which is the same subset the app used to fetch from fonts.gstatic.com. Characters
+outside that subset (the ▸/▾ markers, emoji) fall back to a system font, exactly as before.
+
+To update, grab the `latin` src URL from each of these and re-download:
+
+    https://fonts.googleapis.com/css2?family=Nunito:wght@400&display=swap
+    https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap
+
+Requesting those with a current browser User-Agent is what gets you woff2 rather than an
+older format. Remember to bump CACHE_VERSION in sw.js afterwards.
