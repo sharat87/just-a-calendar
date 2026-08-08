@@ -1,5 +1,4 @@
 import m from "mithril"
-import ClockPageView from "./scripts/ClockPageView"
 
 const LANG = "en"
 
@@ -23,11 +22,6 @@ function main() {
 		"/": {
 			render() {
 				return m(".page-calendar", m(CalendarPageView))
-			},
-		},
-		"/clock": {
-			render() {
-				return m(".page-clock", m(ClockPageView))
 			},
 		},
 	})
@@ -56,7 +50,6 @@ class Model {
 	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
 	visibleDialog: null | "options"
-	printLayout: "1" | "2" | "3" | "4" | "6" | "12"  // Page count, months divided equally.
 	colorChangedByHotkeyAt: number
 
 	constructor() {
@@ -69,7 +62,6 @@ class Model {
 		this.contextMenu = null
 		this.isHelpVisible = false
 		this.visibleDialog = null
-		this.printLayout = "2"
 		this.colorChangedByHotkeyAt = 0
 
 		const now = new Date()
@@ -110,7 +102,7 @@ class Model {
 	}
 
 	goToDate(date: Date): void {
-		this.currentYear = date.getFullYear()
+		this.goToYear(date.getFullYear())
 		setTimeout(() => flash(`[data-date="${dateToBasicIso(date)}"]:not(.diff-month)`), 100)
 	}
 
@@ -267,13 +259,6 @@ class Model {
 		}
 
 		return lines.join("\n")
-	}
-
-	prepareAndPrint() {
-		const styleEl = document.createElement("style")
-		document.body.appendChild(styleEl)
-		setTimeout(styleEl.remove.bind(styleEl), 1000)
-		setTimeout(window.print, 10)
 	}
 }
 
@@ -551,13 +536,6 @@ class CalendarPageView implements m.ClassComponent {
 			return
 		}
 
-		if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key === "p") {
-			// Print hotkey.
-			event.preventDefault()
-			this.model.prepareAndPrint()
-			return
-		}
-
 		if (event.ctrlKey || event.metaKey || event.altKey) {
 			return
 		}
@@ -606,8 +584,8 @@ class CalendarPageView implements m.ClassComponent {
 class TitleView implements m.ClassComponent<never> {
 	view(_: m.Vnode<never, never>): m.Children {
 		return [
-			m("h1.screen", "Just a Calendar."),
-			m("p.center.screen", ["🎉 ", m.trust(dateToHumanReadable(new Date())), "."]),
+			m("h1", "Just a Calendar."),
+			m("p.center", ["🎉 ", m.trust(dateToHumanReadable(new Date())), "."]),
 		]
 	}
 }
@@ -615,7 +593,7 @@ class TitleView implements m.ClassComponent<never> {
 class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 	view(vnode: m.Vnode<{ model: Model }>) {
 		const model = vnode.attrs.model
-		return m("p.controls.screen", [
+		return m("p.controls", [
 			m("button", {
 				onclick() {
 					model.goToYear("-5")
@@ -630,7 +608,7 @@ class TopToolbarView implements m.ClassComponent<{ model: Model }> {
 				type: "number",
 				value: model.currentYear,
 				onchange(event: InputEvent) {
-					model.currentYear = (event.target as HTMLInputElement).valueAsNumber
+					model.goToYear((event.target as HTMLInputElement).valueAsNumber)
 				},
 			}),
 			m("button", {
@@ -702,22 +680,6 @@ class BurgerIcon implements m.ClassComponent {
 	}
 }
 
-class PrinterIcon implements m.ClassComponent {
-	view() {
-		return m(
-			Icon,
-			{
-				stroke: "none",
-				fill: "currentColor",
-			},
-			[
-				m("rect", { x: 3, y: 2, width: 4, height: 2 }),
-				m("polygon", { points: "1,4 3,4 3,6 7,6 7,4 9,4 9,8 1,8" }),
-			],
-		)
-	}
-}
-
 class InfoIcon implements m.ClassComponent {
 	view() {
 		return m(
@@ -740,25 +702,12 @@ class CalendarView implements m.ClassComponent<{ year: number, model: Model }> {
 		const { year, model } = vnode.attrs
 		const children = []
 
-		const factor = 12 / parseInt(model.printLayout, 10)
-		document.body.dataset.printLayout = model.printLayout
-
 		for (let i = 0; i < 12; ++i) {
-			if (i % factor === 0) {
-				children.push(
-					m("h1.print", m.trust(`Just a Calendar &mdash; by calendar.sharats.me`)),
-					m("h2.print", [
-						factor === 1 ? MONTHS[i] : [MONTHS[i], m.trust(` &ndash; `), MONTHS[i + factor - 1]],
-						m.trust(" &mdash; "),
-						year,
-					]),
-				)
-			}
 			children.push(m(MonthTableView, { year, month: i, model }))
 		}
 
 		return [
-			m("h2.screen", ["Year ", year]),
+			m("h2", ["Year ", year]),
 			m(".calendar", children),
 		]
 	}
@@ -775,7 +724,7 @@ class AdditionalCalendarsView implements m.ClassComponent<{ model: Model }> {
 
 		return [
 			calendarViews,
-			m("p.controls.screen", m("button", {
+			m("p.controls", m("button", {
 				onclick() {
 					++vnode.attrs.model.additionalCalendarCount
 				},
@@ -855,7 +804,7 @@ class MonthTableView implements m.ClassComponent<{ year: number, model: Model, m
 
 class FooterView implements m.ClassComponent {
 	view() {
-		return m("footer.screen", [
+		return m("footer", [
 			m("p", [
 				"Hit ",
  				m("kbd", "?"),
@@ -865,7 +814,7 @@ class FooterView implements m.ClassComponent {
 				".",
 			]),
 			m("p", [
-				m.trust("&copy; 2018&ndash;2022 &mdash; "),
+				m.trust("&copy; 2018&ndash;2026 &mdash; "),
 				m("a", { href: "https://sharats.me", target: "_blank" }, "Shri"),
 				". Source on ",
 				m("a", { href: "https://github.com/sharat87/just-a-calendar", target: "_blank" }, "GitHub"),
@@ -1110,37 +1059,6 @@ class OptionsDialogView implements m.ClassComponent<{ model: Model }> {
 					}, "Copy permalink")
 				]),
 			],
-			m("hr"),
-			m("h3", m.trust("Print <sup>&beta;</sup>")),
-			m("p", m("label", [
-				m("span", "Layout: "),
-				m("select", {
-					value: model.printLayout,
-					onchange(event: Event) {
-						const value = (event.target as HTMLSelectElement).value
-						if (value === "1" || value === "2" || value === "3" || value === "4" || value === "6" || value === "12") {
-							model.printLayout = value
-						} else {
-							model.printLayout = "2"
-						}
-					},
-				}, [
-					m("option", { value: "1" }, "1 page, all 12 months"),
-					m("option", { value: "2" }, "2 pages, 6 months in each"),
-					m("option", { value: "3" }, "3 pages, 4 months in each"),
-					m("option", { value: "4" }, "4 pages, 3 months in each"),
-					m("option", { value: "6" }, "6 pages, 2 months in each"),
-					m("option", { value: "12" }, "12 pages, 1 month in each"),
-				]),
-				m("button", {
-					onclick() {
-						model.prepareAndPrint()
-					},
-				}, [
-					m(PrinterIcon),
-					m("span", "Print"),
-				]),
-			])),
 			m("button", {
 				class: "close-btn",
 				onclick() {
@@ -1326,13 +1244,13 @@ function formatDate(date: Date, format: string): string {
 	return format.replace(/%(.)/g, (match: string, code: string): string => {
 		switch (code) {
 			case "d":
-				return pad(date.getUTCDate(), 2)
+				return pad(date.getDate(), 2)
 			case "m":
-				return pad(date.getUTCMonth() + 1, 2)
+				return pad(date.getMonth() + 1, 2)
 			case "M":
-				return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.getUTCMonth()]
+				return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.getMonth()]
 			case "Y":
-				return pad(date.getUTCFullYear(), 4)
+				return pad(date.getFullYear(), 4)
 		}
 		return match
 	})
@@ -1350,7 +1268,16 @@ function computeWeekNumber(date: Date): number {
 	}
 
 	const dayCount = (normalizedValueOf(date) - normalizedValueOf(firstJan)) / (24 * 60 * 60 * 1000)
-	return (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
+	const weekNum = (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.ceil(dayCount / 7)
+
+	if (weekNum === 0) {
+		// Early January days that actually belong to the last week of the previous year. Dec 28th
+		// is always in that last week (mirroring how Jan 4th is always in week 1), and using it
+		// here (rather than Dec 31st) avoids re-triggering the "upcoming year" branch above.
+		return computeWeekNumber(new Date(firstJan.getFullYear() - 1, 11, 28))
+	}
+
+	return weekNum
 }
 
 function computeMessagesForDayCount(days: number): { weeks: null | string } {

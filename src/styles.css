@@ -445,10 +445,6 @@ footer p {
 	& p {
 		margin: 1em;
 	}
-
-	@media only print {
-		display: none;
-	}
 }
 
 .color-change-osd {
@@ -483,87 +479,13 @@ footer p {
 	}
 }
 
-@media only screen {
-
-	.print {
-		display: none;
-	}
-
-	h2 {
-		margin: 1em 0 6px;
-	}
-
-	hr {
-		border: none;
-		border-top: 1px solid currentColor;
-	}
-
+h2 {
+	margin: 1em 0 6px;
 }
 
-@media only print {
-
-	.screen, .dialog {
-		display: none;
-	}
-
-	h1 {
-		font-size: 21pt;
-		margin: .3in -.5in 0;
-	}
-
-	h2 {
-		font-size: 18pt;
-		margin: .1in 0;
-	}
-
-	h1:not(:first-child) {
-		page-break-before: always;
-	}
-
-	body[data-print-layout="2"] {
-		font-size: 14pt;
-	}
-
-	body[data-print-layout="3"] {
-		font-size: 16pt;
-	}
-
-	body[data-print-layout="4"] {
-		font-size: 16pt;
-	}
-
-	body[data-print-layout="6"] {
-		font-size: 21pt;
-	}
-
-	body[data-print-layout="12"] {
-		font-size: 30pt;
-	}
-
-	.calendar {
-		/* Unfortunately, `flex` display screws up print layouts 10x. */
-		display: block;
-		text-align: center;
-	}
-
-	.today {
-		outline: none;
-	}
-
-	.month {
-		margin: .4em 1.2em;
-		display: inline-block;
-		page-break-inside: avoid;
-	}
-
-	.weekend {
-		background: none;
-	}
-
-	hr {
-		visibility: hidden;
-	}
-
+hr {
+	border: none;
+	border-top: 1px solid currentColor;
 }
 
 .flash {
@@ -584,39 +506,5 @@ footer p {
 		transform: scale(1);
 		outline: 0 solid red;
 		box-shadow: 0 0 0 #0008;
-	}
-}
-
-.page-clock {
-	height: 100vh;
-	max-width: 160vh;
-	margin: 0 auto;
-	display: flex;
-	place-items: center;
-	place-content: space-evenly;
-
-	& svg {
-		width: 50vw;
-		height: 60vh;
-	}
-
-	& .small-calendar {
-		font-size: 4vh;
-
-		& th {
-			font-family: monospace;
-		}
-
-		& td {
-			text-align: right;
-		}
-
-		& .active {
-			outline: 3px solid crimson;
-		}
-
-		& .dull {
-			opacity: .4;
-		}
 	}
 }
