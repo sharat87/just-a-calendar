@@ -6,23 +6,16 @@
 	"author": "Shrikant Sharat Kandula <shrikantsharat.k@gmail.com>",
 	"license": "MIT",
 	"private": false,
-	"source": "src/index.html",
-	"browserslist": [
-		"since 2017-06"
-	],
-	"@parcel/transformer-css": {
-		"drafts": {
-			"nesting": true,
-			"customMedia": true
-		}
+	"scripts": {
+		"build": "node build.mjs",
+		"serve": "node build.mjs serve"
+	},
+	"dependencies": {
+		"mithril": "^2.2.2"
 	},
 	"devDependencies": {
-		"@parcel/packager-raw-url": "2.9.1",
-		"@parcel/service-worker": "^2.9.1",
-		"@parcel/transformer-webmanifest": "2.9.1",
 		"@types/mithril": "^2.0.12",
-		"mithril": "^2.2.2",
-		"parcel": "^2.9.1",
+		"esbuild": "^0.23.0",
 		"typescript": "^5.1.3"
 	}
 }

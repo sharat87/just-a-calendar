@@ -1,6 +1,3 @@
-// This import unambiguously indicates this script as a service-worker to Parcel.
-import "@parcel/service-worker"
-
 // Offline support.
 const CACHE_NAME = "just-a-calendar-cache"
 addEventListener("install", (event) => {
