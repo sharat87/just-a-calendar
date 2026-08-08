@@ -667,6 +667,10 @@ const MonthTableView: m.ClosureComponent<{ year: number, month: number, model: M
 			const weekRows = []
 			const today = new Date()
 
+			// Which column of a displayed row holds its Thursday, which is the day that decides
+			// the row's ISO week number. Depends on whether weeks are shown Monday- or Sunday-first.
+			const thursdayOffset = (WEEKDAYS.indexOf("Thursday") - weekdayNumbersInOrder[0] + 7) % 7
+
 			const date = new Date(year, month, 1)
 			date.setDate(1 + weekdayNumbersInOrder[0] - (date.getDay() || 7))
 			const dragDates: Set<string> = model.dragState == null ? new Set() : model.dragState.computeDateSet()
@@ -677,7 +681,7 @@ const MonthTableView: m.ClosureComponent<{ year: number, month: number, model: M
 					row.push(m("th.week-num", {
 						"data-week-start": dateToBasicIso(date),
 						class: date.getMonth() === month ? undefined : "diff-month",
-					}, computeWeekNumber(date)))
+					}, computeWeekNumber(dateAddDays(date, thursdayOffset))))
 				}
 				for (let colNum = 0; colNum < 7; ++colNum) {
 					const dateStr = dateToBasicIso(date)
@@ -1059,27 +1063,22 @@ function formatDate(date: Date, format: string): string {
 }
 
 function computeWeekNumber(date: Date): number {
-	// Ref: <https://en.wikipedia.org/wiki/ISO_week_date>.
-	const firstJan = new Date(date)
-	firstJan.setDate(1)
-	firstJan.setMonth(0)
+	// Ref: <https://en.wikipedia.org/wiki/ISO_week_date>. Weeks run Monday–Sunday, and week 1 is
+	// whichever one holds the year's first Thursday. So a week belongs to the year its *Thursday*
+	// falls in, and that Thursday alone decides both the number and the year it counts against —
+	// which is how a year ends up with a 53rd week, and how the days either side of New Year land
+	// in a week belonging to the neighbouring year.
+	//
+	// Counting from the Thursday (rather than from Jan 1st) is what keeps this right: weeks are
+	// only whole multiples of 7 days apart from each other, not from Jan 1st.
+	const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+	thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7))
 
-	if (date.getMonth() === 11 /* December */ && date.getDate() > 28 /* Too few days of this year in this week */) {
-		// Here, we use the week number of the upcoming first Jan.
-		return computeWeekNumber(new Date(firstJan.getFullYear() + 1, 0, 1))
-	}
+	// In UTC throughout, so a DST transition can't make a whole number of days come out as 6.96.
+	const firstJan = Date.UTC(thursday.getUTCFullYear(), 0, 1)
+	const dayOfYear = (thursday.valueOf() - firstJan) / (24 * 60 * 60 * 1000)
 
-	const dayCount = (normalizedValueOf(date) - normalizedValueOf(firstJan)) / (24 * 60 * 60 * 1000)
-	const weekNum = (![0, 5, 6].includes(firstJan.getDay()) ? 1 : 0) + Math.floor(dayCount / 7)
-
-	if (weekNum === 0) {
-		// Early January days that actually belong to the last week of the previous year. Dec 28th
-		// is always in that last week (mirroring how Jan 4th is always in week 1), and using it
-		// here (rather than Dec 31st) avoids re-triggering the "upcoming year" branch above.
-		return computeWeekNumber(new Date(firstJan.getFullYear() - 1, 11, 28))
-	}
-
-	return weekNum
+	return Math.ceil((dayOfYear + 1) / 7)
 }
 
 function computeMessagesForDayCount(days: number): { weeks: null | string } {
