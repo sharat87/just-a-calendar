@@ -294,6 +294,7 @@ svg.i {
 .dialog {
 	display: block;
 	position: fixed;
+	z-index: 10;
 	background-color: var(--bg-color-alt);
 	box-shadow: 6px 6px 36px #0005;
 	padding: 1em;

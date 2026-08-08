@@ -959,7 +959,8 @@ function ColorChangeOSDView(model: Model) {
 }
 
 function autofocusUnder(parent: Element): void {
-	(parent.querySelector("input, select, textarea") as HTMLElement)?.focus()
+	const el = parent.querySelector("input:not([type=hidden]):not([type=radio]), select, textarea") as HTMLElement | null
+	el?.focus()
 }
 
 function isWeekend(date: Date): boolean {
