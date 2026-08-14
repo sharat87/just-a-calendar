@@ -42,7 +42,6 @@ class Model {
 	additionalCalendarCount: number
 	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
-	visibleDialog: null | "options"
 	colorChangedByHotkeyAt: number
 
 	constructor() {
@@ -54,7 +53,6 @@ class Model {
 		this.additionalCalendarCount = 0
 		this.contextMenu = null
 		this.isHelpVisible = false
-		this.visibleDialog = null
 		this.colorChangedByHotkeyAt = 0
 
 		const now = new Date()
@@ -354,14 +352,6 @@ const SVG_ATTRS = {
 	"stroke-linecap": "round",
 } as const
 
-function burgerIcon(): m.Children {
-	return m("svg.i", { ...SVG_ATTRS, stroke: "currentColor", "stroke-width": 1 }, [
-		m("line", { x1: 1, y1: 2, x2: 9, y2: 2 }),
-		m("line", { x1: 1, y1: 5, x2: 9, y2: 5 }),
-		m("line", { x1: 1, y1: 8, x2: 9, y2: 8 }),
-	])
-}
-
 function infoIcon(): m.Children {
 	return m("svg.i", { ...SVG_ATTRS, stroke: "currentColor", fill: "none" }, [
 		m("circle", { cx: 5, cy: 5, r: 4 }),
@@ -540,7 +530,7 @@ const CalendarPageView: m.Component = (() => {
 				break
 			case "Escape":
 				model.isHelpVisible = false
-				model.visibleDialog = model.contextMenu = model.dragState = null
+				model.contextMenu = model.dragState = null
 				break
 		}
 
@@ -584,7 +574,6 @@ const CalendarPageView: m.Component = (() => {
 				m(FooterView),
 				m(ContextMenuView, { model }),
 				model.dragState != null && m(DragDatePeriodView, { dragState: model.dragState }),
-				model.visibleDialog === "options" && m(OptionsDialogView, { model }),
 				model.isHelpVisible && m(HelpDialogView),
 				m(storageInfoView),
 				Date.now() - model.colorChangedByHotkeyAt < 3000 && m(ColorChangeOSDView, { model }),
@@ -602,8 +591,7 @@ const TitleView = {
 
 const TopToolbarView: m.ClosureComponent<{ model: Model }> = () => {
 	return {
-		view: ({ attrs: { model } }) => m("p.controls", [
-			m("button", { onclick() { model.goToYear("-5") } }, m.trust("&minus;5")),
+		view: ({ attrs: { model } }) => m("p.controls.toolbar", [
 			m("button", { onclick() { model.goToYear("-1") } }, m.trust("&minus;1")),
 			m("input.year-input", {
 				id: "year-input",
@@ -614,14 +602,45 @@ const TopToolbarView: m.ClosureComponent<{ model: Model }> = () => {
 				},
 			}),
 			m("button", { onclick() { model.goToYear("+1") } }, "+1"),
-			m("button", { onclick() { model.goToYear("+5") } }, "+5"),
 			m("button", { onclick() { model.goToDate(new Date()) } }, [m("u", "T"), "oday"]),
 			m("button", { onclick() { model.promptGoToDate() } }, [m("u", "G"), "o to date"]),
-			m("button", {
-				title: "Options",
-				style: { display: "flex", alignItems: "center" },
-				onclick() { model.visibleDialog = model.visibleDialog === "options" ? null : "options" },
-			}, burgerIcon()),
+			m("span.toolbar-sep"),
+			m(MarkColorInput, {
+				value: model.currentColor,
+				onNewValue: (value: string) => { model.currentColor = value },
+				includeClear: false,
+				hideLabel: true,
+			}),
+			m("select", {
+				class: "toolbar-select",
+				value: model.weekStartsOn,
+				onchange(event: Event) {
+					model.weekStartsOn = (event.target as HTMLSelectElement).value === "Monday" ? "Monday" : "Sunday"
+				},
+			}, [
+				m("option", { value: "Sunday" }, "Starts Sun"),
+				m("option", { value: "Monday" }, "Starts Mon"),
+			]),
+			m("label.toolbar-opt", [
+				m("input", {
+					type: "checkbox",
+					checked: model.weekNumbersEnabled,
+					onchange(event: Event) {
+						model.weekNumbersEnabled = (event.target as HTMLInputElement).checked
+					},
+				}),
+				" Week numbers",
+			]),
+			m("label.toolbar-opt", [
+				m("input", {
+					type: "checkbox",
+					checked: model.ghostDatesEnabled,
+					onchange(event: Event) {
+						model.ghostDatesEnabled = (event.target as HTMLInputElement).checked
+					},
+				}),
+				" Surrounding dates",
+			]),
 		]),
 	}
 }
@@ -839,117 +858,21 @@ const HelpDialogView = {
 	]),
 }
 
-const OptionsDialogView: m.ClosureComponent<{ model: Model }> = () => {
-	return {
-		oncreate: (vnode: m.VnodeDOM) => { autofocusUnder(vnode.dom as Element) },
-		view: ({ attrs: { model } }): m.Children => {
-			const markCount = Object.keys(model.markedDates).length
-
-			return m(".dialog", [
-				m("p", { style: { display: "flex", alignItems: "center" } }, [
-					m(MarkColorInput, {
-						value: model.currentColor,
-						onNewValue: (value: string) => { model.currentColor = value },
-						includeClear: false,
-					}),
-				]),
-				m("p", m("label", [
-					m("span", "Week starts on "),
-					m("select", {
-						id: "week-starts-on",
-						value: model.weekStartsOn,
-						onchange(event: Event) {
-							model.weekStartsOn = (event.target as HTMLSelectElement).value === "Monday" ? "Monday" : "Sunday"
-						},
-					}, [
-						m("option", { value: "Sunday" }, "Sunday"),
-						m("option", { value: "Monday" }, "Monday"),
-					]),
-				])),
-				m("p", m("label", [
-					m("input", {
-						id: "week-numbers-enabled",
-						type: "checkbox",
-						checked: model.weekNumbersEnabled,
-						onchange(event: Event) {
-							model.weekNumbersEnabled = (event.target as HTMLInputElement).checked
-						},
-					}),
-					m("span", " Show week numbers"),
-				])),
-				model.weekStartsOn !== "Monday" && model.weekNumbersEnabled &&
-					m("p.info", [
-						infoIcon(),
-						m("span", "Week numbers work best when weeks start on Mondays. "),
-						m("a", { href: "#", onclick(event: MouseEvent) { event.preventDefault(); model.weekStartsOn = "Monday" } }, "Fix"),
-						".",
-					]),
-				m("p", m("label", [
-					m("input", {
-						id: "ghost-dates-enabled",
-						type: "checkbox",
-						checked: model.ghostDatesEnabled,
-						onchange(event: Event) {
-							model.ghostDatesEnabled = (event.target as HTMLInputElement).checked
-						},
-					}),
-					m("span", " Show surrounding dates"),
-				])),
-				markCount > 0 && [
-					m("hr"),
-					m("p", m("button.danger", {
-						onclick() {
-							if (confirm(`Are you sure? This will delete your ${markCount} marks.`)) {
-								model.clearMarks()
-							}
-						},
-					}, "Delete all marks, across all years")),
-					m("hr"),
-					m("h3", `Export ${markCount} mark${markCount > 1 ? "s" : ""}`),
-					m("p", [
-						m("button", {
-							onclick() {
-								copyText(model.exportMarksToText())
-									.then(() => {
-										const count = Object.keys(model.markedDates).length
-										showOSD(`Copied ${count} date${count > 1 ? "s" : ""} to clipboard`)
-									})
-							},
-						}, "Copy dates list"),
-						m("button", {
-							onclick() { downloadText(model.exportMarksToText() + "\n") },
-						}, "Download"),
-						m("button", {
-							onclick() {
-								copyText(model.generateLinkWithMarks())
-									.then(() => showOSD("Copied link to clipboard"))
-							},
-						}, "Copy permalink"),
-					]),
-				],
-				m("button", {
-					class: "close-btn",
-					onclick() { model.visibleDialog = null },
-				}, m.trust("&times;")),
-			])
-		},
-	}
-}
-
 let markColorInputCount = 0
 
 type MarkColorInputAttrs = {
 	value: string
 	onNewValue: (value: string) => void
 	includeClear: boolean
+	hideLabel?: boolean
 }
 
 const MarkColorInput: m.ClosureComponent<MarkColorInputAttrs> = () => {
 	const name = `mark-color-${++markColorInputCount}`
 
 	return {
-		view: ({ attrs: { value, onNewValue, includeClear } }) => m("span.color-selector", [
-			m("span", "Mark color: "),
+		view: ({ attrs: { value, onNewValue, includeClear, hideLabel } }) => m("span.color-selector", [
+			!hideLabel && m("span", "Mark color: "),
 			includeClear && m("label", { title: "Clear" }, [
 				m("input", {
 					type: "radio",
@@ -984,11 +907,6 @@ const ColorChangeOSDView: m.ClosureComponent<{ model: Model }> = () => {
 			}),
 		]),
 	}
-}
-
-function autofocusUnder(parent: Element): void {
-	const el = parent.querySelector("input:not([type=hidden]):not([type=radio]), select, textarea") as HTMLElement | null
-	el?.focus()
 }
 
 function isWeekend(date: Date): boolean {
