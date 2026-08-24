@@ -171,6 +171,13 @@ button {
 	align-items: center;
 }
 
+.hint {
+	margin: .5em auto;
+	text-align: center;
+	font-size: .85em;
+	color: var(--highlight2);
+}
+
 .toolbar-sep {
 	width: 1px;
 	align-self: stretch;

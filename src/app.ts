@@ -569,6 +569,7 @@ const CalendarPageView: m.Component = (() => {
 			}, [
 				m(TitleView),
 				m(TopToolbarView, { model }),
+				m(HintView),
 				m(CalendarView, { year: model.currentYear, model }),
 				m(AdditionalCalendarsView, { model }),
 				m(FooterView),
@@ -643,6 +644,29 @@ const TopToolbarView: m.ClosureComponent<{ model: Model }> = () => {
 			]),
 		]),
 	}
+}
+
+const HINTS = [
+	"Hint: Hit `t` to jump to today",
+	"Hint: Hit `g` to go to any date",
+	"Hint: Hit `n` or `p` to move a year forward or back",
+	"Hit `N` and `P` to jump 5 years ahead or back",
+	"Hint: Click a date to mark it, drag to mark many",
+	"Right-click any date to copy it in several formats",
+	"Hit `1`-`4` to switch the mark color quickly",
+	"Press `?` any time for a list of hotkeys",
+]
+
+let lastHintIndex = -1
+
+const HintView = {
+	view: (): m.Children => {
+		// Pick a hint different from the last one shown.
+		let index = Math.floor(Math.random() * HINTS.length)
+		if (index === lastHintIndex) index = (index + 1) % HINTS.length
+		lastHintIndex = index
+		return m("p.hint", HINTS[index])
+	},
 }
 
 const CalendarView: m.ClosureComponent<{ year: number, model: Model }> = () => {
