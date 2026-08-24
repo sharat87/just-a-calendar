@@ -341,6 +341,31 @@ function computeDateSet(lowerDate: Date, higherDate: Date) {
 	return dateSet
 }
 
+// The seven days of the on-screen week (grid row) that `date` falls in, aligned to how the user
+// configures weeks to start (Monday or Sunday). Includes any surrounding-month days, to match what
+// a drag over the week-number column selects.
+function computeWeekDateSet(date: Date, weekStartsOn: "Monday" | "Sunday"): Set<string> {
+	const startIndex = weekStartsOn === "Monday" ? 1 : 0 // 0 = Sunday, 1 = Monday
+	const offset = (date.getDay() - startIndex + 7) % 7
+	const weekStart = dateAddDays(date, -offset)
+
+	const dateSet: Set<string> = new Set()
+	for (let i = 0; i < 7; ++i) {
+		dateSet.add(dateToBasicIso(dateAddDays(weekStart, i)))
+	}
+	return dateSet
+}
+
+// Every day of the month that `date` falls in.
+function computeMonthDateSet(date: Date): Set<string> {
+	const dateSet: Set<string> = new Set()
+	const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+	for (let day = 1; day <= daysInMonth; ++day) {
+		dateSet.add(dateToBasicIso(new Date(date.getFullYear(), date.getMonth(), day)))
+	}
+	return dateSet
+}
+
 // ---- SVG icon helpers ----
 
 const SVG_ATTRS = {
@@ -386,6 +411,80 @@ function colorIcon(color: string, selected: boolean): m.Children {
 const CalendarPageView: m.Component = (() => {
 	const model = new Model()
 	let touchStartedAt: null | { time: number; scrollX: number; scrollY: number } = null
+
+	// --- click-sequence detection for single/double/triple clicks ---
+	//
+	// Single-click should feel instant, so we optimistically apply it straight away. If a second or
+	// third click lands on the same day quickly enough, we restore the marked-date state from before
+	// the first click and replace the action with week- or month-toggle instead.
+	const CLICK_SEQUENCE_WINDOW = 250
+
+	let lastClick: null | {
+		time: number
+		dateStr: string
+		count: number
+		timer: number
+		baselineMarkedDates: Record<string, string>
+	} = null
+
+	function handleMouseClickOnDate(dateStr: string) {
+		const now = Date.now()
+		const continuesSequence =
+			lastClick != null
+			&& lastClick.dateStr === dateStr
+			&& now - lastClick.time < CLICK_SEQUENCE_WINDOW
+
+		if (!continuesSequence) {
+			if (lastClick != null) {
+				clearTimeout(lastClick.timer)
+			}
+			lastClick = {
+				time: now,
+				dateStr,
+				count: 0,
+				timer: 0,
+				baselineMarkedDates: { ...model.markedDates },
+			}
+		} else {
+			clearTimeout(lastClick!.timer)
+			lastClick!.time = now
+		}
+
+		const count = Math.min((lastClick?.count ?? 0) + 1, 3)
+		lastClick!.count = count
+
+		if (count > 1) {
+			model.markedDates = { ...lastClick!.baselineMarkedDates }
+			model.saveMarks()
+		}
+
+		applyClickAction(dateStr, count)
+		lastClick!.timer = window.setTimeout(() => { lastClick = null }, CLICK_SEQUENCE_WINDOW)
+	}
+
+	function applyClickAction(dateStr: string, count: number) {
+		const anchor = parseDate(dateStr)!
+		let dateSet: Set<string>
+
+		if (count >= 3) {
+			dateSet = computeMonthDateSet(anchor)
+		} else if (count === 2) {
+			dateSet = computeWeekDateSet(anchor, model.weekStartsOn)
+		} else {
+			dateSet = new Set([dateStr])
+		}
+
+		// Mirror the drag semantics: if the clicked day is marked with the current color, unset the
+		// whole set; otherwise set the whole set.
+		const isUnmarking = model.markedDates[dateStr] === model.currentColor
+		for (const d of dateSet) {
+			if (isUnmarking) {
+				model.unsetMark(d)
+			} else {
+				model.setMark(d)
+			}
+		}
+	}
 
 	const storageInfoView = (() => {
 		let isExpanded = false
@@ -480,13 +579,23 @@ const CalendarPageView: m.Component = (() => {
 
 	function onMouseUp(event: MouseEvent) {
 		if (model.dragState == null) return
-		for (const d of model.dragState.computeDateSet()) {
-			if (model.dragState.isUnmarking) {
-				model.unsetMark(d)
-			} else {
-				model.setMark(d)
+		const dragState = model.dragState
+
+		if (dragState instanceof DragDateState && isSameDate(dragState.start, dragState.end)) {
+			// A plain click with no drag — feed it into the click-sequence detector so that a
+			// double-click selects the week and a triple-click the month, instead of toggling this
+			// single day straight away.
+			handleMouseClickOnDate(dateToBasicIso(dragState.start))
+		} else {
+			for (const d of dragState.computeDateSet()) {
+				if (dragState.isUnmarking) {
+					model.unsetMark(d)
+				} else {
+					model.setMark(d)
+				}
 			}
 		}
+
 		model.dragState = null
 		event.preventDefault()
 	}
@@ -652,6 +761,8 @@ const HINTS = [
 	"Hint: Hit `n` or `p` to move a year forward or back",
 	"Hit `N` and `P` to jump 5 years ahead or back",
 	"Hint: Click a date to mark it, drag to mark many",
+	"Hint: Double-click a date to mark its whole week",
+	"Hint: Click a date three times to mark its whole month",
 	"Right-click any date to copy it in several formats",
 	"Hit `1`-`4` to switch the mark color quickly",
 	"Press `?` any time for a list of hotkeys",
