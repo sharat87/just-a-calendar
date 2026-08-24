@@ -768,16 +768,10 @@ const HINTS = [
 	"Press `?` any time for a list of hotkeys",
 ]
 
-let lastHintIndex = -1
+const INITIAL_HINT = HINTS[Math.floor(Math.random() * HINTS.length)]
 
 const HintView = {
-	view: (): m.Children => {
-		// Pick a hint different from the last one shown.
-		let index = Math.floor(Math.random() * HINTS.length)
-		if (index === lastHintIndex) index = (index + 1) % HINTS.length
-		lastHintIndex = index
-		return m("p.hint", HINTS[index])
-	},
+	view: (): m.Children => m("p.hint", INITIAL_HINT),
 }
 
 const CalendarView: m.ClosureComponent<{ year: number, model: Model }> = () => {
