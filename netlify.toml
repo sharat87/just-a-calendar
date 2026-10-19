@@ -5,16 +5,3 @@
 [build.environment]
   # Netlify doesn't read .tool-versions, so pin the Node major version here.
   NODE_VERSION = "24"
-
-# Old domain, moving to sharat.space.
-[[redirects]]
-  from = "https://cal.sharats.me/*"
-  to = "https://cal.sharat.space/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "https://calendar.sharats.me/*"
-  to = "https://calendar.sharat.space/:splat"
-  status = 301
-  force = true
