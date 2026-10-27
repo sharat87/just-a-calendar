@@ -505,3 +505,21 @@ hr {
 		box-shadow: 0 0 0 #0008;
 	}
 }
+
+/* A small corner triangle, so it stays visible on weekends and marked dates alike. The name is in
+   the cell's tooltip, and in the right-click menu. */
+td.date.holiday::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	border-top: 7px solid #09F;
+	border-right: 7px solid transparent;
+	pointer-events: none;
+}
+
+.cmenu-holiday {
+	padding: 6px 12px;
+	font-weight: bold;
+	border-bottom: 1px solid var(--highlight1);
+}

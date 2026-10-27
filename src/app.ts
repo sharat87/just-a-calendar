@@ -43,6 +43,8 @@ class Model {
 	contextMenu: null | { date: Date, top: number, left: number }
 	isHelpVisible: boolean
 	colorChangedByHotkeyAt: number
+	holidays: Record<string, string>
+	holidaysCountry: null | { code: string, name: null | string }
 
 	constructor() {
 		// Ensure every field has a default value, before _any_ method is called.
@@ -54,6 +56,8 @@ class Model {
 		this.contextMenu = null
 		this.isHelpVisible = false
 		this.colorChangedByHotkeyAt = 0
+		this.holidays = {}
+		this.holidaysCountry = null
 
 		const now = new Date()
 		this.goToYear(now.getFullYear())
@@ -64,6 +68,7 @@ class Model {
 			this.markStorage = "queryParams"
 		}
 		this.loadMarks()
+		this.loadHolidays()
 	}
 
 	goToYear(target: number | string) {
@@ -131,6 +136,69 @@ class Model {
 
 	set weekNumbersEnabled(value: boolean) {
 		localStorage.setItem("weekNumbersEnabled", value ? "1" : "0")
+	}
+
+	get holidaysEnabled(): boolean {
+		return localStorage.getItem("holidaysEnabled") !== "0"
+	}
+
+	set holidaysEnabled(value: boolean) {
+		localStorage.setItem("holidaysEnabled", value ? "1" : "0")
+		this.loadHolidays()
+	}
+
+	// Empty string means the country is detected by the server, from the request.
+	get holidaysCountryOverride(): string {
+		return localStorage.getItem("holidaysCountry") ?? ""
+	}
+
+	set holidaysCountryOverride(value: string) {
+		localStorage.setItem("holidaysCountry", value)
+		this.loadHolidays()
+	}
+
+	loadHolidays() {
+		this.holidays = {}
+		this.holidaysCountry = null
+		if (!this.holidaysEnabled) {
+			return
+		}
+
+		const country = this.holidaysCountryOverride
+		fetch("/holidays" + (country ? "?country=" + encodeURIComponent(country) : ""))
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`Status ${response.status}`)
+				}
+				return response.json()
+			})
+			.then(data => {
+				// Ignore responses for a setting that has since changed.
+				if (!this.holidaysEnabled || this.holidaysCountryOverride !== country || data.country == null) {
+					return
+				}
+				this.holidays = data.holidays
+				this.holidaysCountry = { code: data.country, name: data.name }
+				m.redraw()
+			})
+			.catch(err => {
+				console.error("Error loading holidays", err)
+			})
+	}
+
+	promptHolidaysCountry() {
+		const value = prompt(
+			"Two-letter country code to show holidays for, like IN, US or DE. Leave empty to detect automatically:",
+			this.holidaysCountryOverride,
+		)
+		if (value != null) {
+			const code = value.trim().toUpperCase()
+			if (code === "" || /^[A-Z]{2}$/.test(code)) {
+				this.holidaysCountryOverride = code
+			} else {
+				showOSD(`"${value}" is not a two-letter country code`)
+			}
+		}
 	}
 
 	toggleMark(dateStr: string) {
@@ -751,6 +819,24 @@ const TopToolbarView: m.ClosureComponent<{ model: Model }> = () => {
 				}),
 				" Surrounding dates",
 			]),
+			m("label.toolbar-opt", [
+				m("input", {
+					type: "checkbox",
+					checked: model.holidaysEnabled,
+					onchange(event: Event) {
+						model.holidaysEnabled = (event.target as HTMLInputElement).checked
+					},
+				}),
+				" Holidays",
+				model.holidaysEnabled && model.holidaysCountry != null && ["\u00a0in\u00a0", m("a", {
+					href: "#",
+					title: "Change the country to show holidays for",
+					onclick(event: MouseEvent) {
+						event.preventDefault()
+						model.promptHolidaysCountry()
+					},
+				}, holidaysCountryLabel(model.holidaysCountry))],
+			]),
 		]),
 	}
 }
@@ -839,9 +925,11 @@ const MonthTableView: m.ClosureComponent<{ year: number, month: number, model: M
 					const dateStr = dateToBasicIso(date)
 					row.push(m("td.date", {
 						"data-date": dateStr,
+						title: model.holidays[dateStr],
 						class: [
 							date.getMonth() === month ? "" : "diff-month",
 							isWeekend(date) ? "weekend" : "",
+							model.holidays[dateStr] ? "holiday" : "",
 							isSameDate(date, today) ? "today" : "",
 							(model.dragState instanceof DragDateState || model.dragState instanceof DragWeekState)
 								&& isSameDate(date, model.dragState.start)
@@ -914,6 +1002,7 @@ const ContextMenuView: m.ClosureComponent<{ model: Model }> = () => {
 					left: model.contextMenu.left + "px",
 				},
 			},
+				model.holidays[dateToBasicIso(date)] && m(".cmenu-holiday", model.holidays[dateToBasicIso(date)]),
 				m(MarkColorInput, {
 					value: model.markedDates[dateToBasicIso(date)] ?? "",
 					onNewValue: (value: string) => {
@@ -1036,6 +1125,13 @@ const ColorChangeOSDView: m.ClosureComponent<{ model: Model }> = () => {
 			}),
 		]),
 	}
+}
+
+// Like "India", from the server's "Holidays in India", or a note if there's no calendar for it.
+function holidaysCountryLabel(country: { code: string, name: null | string }): string {
+	return country.name == null
+		? `${country.code} (none found)`
+		: country.name.replace(/^Holidays in /, "")
 }
 
 function isWeekend(date: Date): boolean {

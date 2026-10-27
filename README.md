@@ -19,6 +19,7 @@ Icon by [favicon.io](https://favicon.io).
 	1. Generate and copy URL with marked dates for sharing.
 1. Right click on any date to easily copy it in several formats.
 1. Optional week numbers.
+1. Public holidays for your country, detected automatically, or pick another.
 1. Weeks start on Monday or Sunday, configurable.
 1. View consecutive Calendars together.
 1. Works completely offline, and has PWA support.

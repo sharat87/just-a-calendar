@@ -1,8 +1,10 @@
-// Cloudflare Worker serving the built site from dist/ (static assets only, no script).
+// Cloudflare Worker serving the built site from dist/, plus a small script for the /holidays API.
+// Requests matching a static asset never invoke the script, so they stay free and unlimited.
 // Built and deployed by Workers Builds on push to master: `make build`, then `npx wrangler deploy`.
 {
 	"name": "cal-sharats-me",
 	"compatibility_date": "2026-10-01",
+	"main": "worker.js",
 	// Only the real domains below, no duplicate of the site on workers.dev.
 	"workers_dev": false,
 	"assets": {
