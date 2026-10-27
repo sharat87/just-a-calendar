@@ -1,7 +1,0 @@
-[build]
-  command = "make build"
-  publish = "dist"
-
-[build.environment]
-  # Netlify doesn't read .tool-versions, so pin the Node major version here.
-  NODE_VERSION = "24"
