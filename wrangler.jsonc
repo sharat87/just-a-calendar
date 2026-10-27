@@ -1,0 +1,17 @@
+// Cloudflare Worker serving the built site from dist/ (static assets only, no script).
+// Built and deployed by Workers Builds on push to master: `make build`, then `npx wrangler deploy`.
+{
+	"name": "cal-sharats-me",
+	"compatibility_date": "2026-10-01",
+	// Only the real domains below, no duplicate of the site on workers.dev.
+	"workers_dev": false,
+	"assets": {
+		"directory": "./dist",
+		"html_handling": "auto-trailing-slash"
+	},
+	// The proxied DNS records for these live in ~/labs/infra/dns.
+	"routes": [
+		{ "pattern": "cal.sharats.me/*", "zone_name": "sharats.me" },
+		{ "pattern": "calendar.sharats.me/*", "zone_name": "sharats.me" }
+	]
+}
